@@ -16,11 +16,11 @@
   html { scroll-behavior:smooth; }
   body { color:var(--ink); background:#05060b; min-height:100vh; overflow-x:hidden; }
 
-  /* Ambient mesh gradient blobs */
+  
   .blob { position:fixed; border-radius:9999px; filter:blur(80px); opacity:.6; z-index:-1; animation:drift 20s ease-in-out infinite alternate; }
   @keyframes drift { to { transform:translate(70px,-50px) scale(1.18); } }
 
-  /* iOS glass surface */
+  
   .glass {
     position:relative; border-radius:28px;
     background:linear-gradient(115deg,rgba(255,255,255,.16),rgba(255,255,255,0) 42%),
@@ -47,13 +47,13 @@
   .shimmer { background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.3),rgba(255,255,255,.05)); background-size:200% 100%; animation:sh 1.2s linear infinite; border-radius:12px; }
   @keyframes sh { to { background-position:-200% 0; } }
 
-  /* Equalizer bars on the playlist cover */
+  
   .eq { display:flex; gap:4px; align-items:flex-end; height:34px; }
   .eq span { width:6px; border-radius:3px; background:#fff; animation:eq .9s ease-in-out infinite alternate; }
   .eq span:nth-child(2){animation-delay:.2s} .eq span:nth-child(3){animation-delay:.4s} .eq span:nth-child(4){animation-delay:.1s}
   @keyframes eq { from { height:20%; } to { height:100%; } }
 
-  /* Candle */
+  
   .candle { width:10px; height:34px; border-radius:4px; background:repeating-linear-gradient(45deg,#fff,#fff 5px,#ff4d5e 5px,#ff4d5e 10px); margin-bottom:-18px; position:relative; z-index:2; }
   .flame { position:absolute; left:50%; top:-26px; width:14px; height:24px; margin-left:-7px; border-radius:50% 50% 50% 50%/62% 62% 38% 38%;
            background:radial-gradient(circle at 50% 72%,#fff7c2,#ffb84d 55%,#ff7a45); box-shadow:0 0 20px 7px rgba(255,190,90,.6);
@@ -61,7 +61,7 @@
   .flame.out { opacity:0; transform:scale(.2) translateY(-12px); }
   @keyframes flick { to { transform:scale(.92,1.08) rotate(-3deg); } }
 
-  /* Treat choices */
+  
   .choice { display:flex; align-items:center; gap:.9rem; width:100%; padding:.9rem 1.1rem; border-radius:20px; text-align:left; background:rgba(255,255,255,.08); border:1.5px solid rgba(255,255,255,.2); cursor:pointer; transition:transform .3s var(--spring), border-color .2s; }
   .choice:active { transform:scale(.97); }
   .choice[aria-pressed="true"] { border-color:#ff2d46; background:rgba(255,45,70,.22); }
@@ -69,14 +69,14 @@
   .reveal { opacity:0; transform:translateY(24px); transition:opacity .8s, transform .8s var(--spring); } .reveal.in { opacity:1; transform:none; }
   #fx { position:fixed; inset:0; pointer-events:none; z-index:60; }
 
-  /* ---- Pages: only one section is visible at a time ---- */
+  
   .page { display:none; }
   .page.on { display:block; animation:pageIn .45s ease backwards; }
   @keyframes pageIn { from { opacity:0; transform:translateY(14px); } }
 
   @media (prefers-reduced-motion:reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } .reveal { opacity:1; transform:none; } }
 
-  /* ---- Site shell, login, game, phone tweaks ---- */
+  
   * { -webkit-tap-highlight-color:transparent; } button, a { touch-action:manipulation; }
   body { min-height:100dvh; }
   .stage { display:none; min-height:calc(100vh - 5rem); min-height:calc(100dvh - 5rem); align-items:center; justify-content:center; padding:1rem 1rem calc(2rem + env(safe-area-inset-bottom)); }
@@ -102,7 +102,7 @@
 </head>
 <body class="font-sans antialiased">
 
-<!-- Ambient mesh background -->
+
 <div class="blob" style="width:42vw;height:42vw;left:-10vw;top:-8vw;background:#12358c"></div>
 <div class="blob" style="width:38vw;height:38vw;right:-8vw;top:10vh;background:#d6102a;animation-delay:-6s"></div>
 <div class="blob" style="width:44vw;height:44vw;left:20vw;bottom:-14vw;background:#0b2a6e;animation-delay:-11s"></div>
@@ -116,7 +116,7 @@
   </div>
 </nav>
 
-<!-- LOGIN -->
+
 <section id="login" class="stage on">
   <div id="loginCard" class="glass w-full max-w-sm p-6 sm:p-8">
     <h1 class="text-3xl font-extrabold tracking-tight">Welcome</h1>
@@ -131,7 +131,7 @@
   </div>
 </section>
 
-<!-- GAME -->
+
 <section id="game" class="stage">
   <div class="glass w-full max-w-md p-5 sm:p-7 text-center">
     <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">Quick warm-up</h2>
@@ -143,23 +143,23 @@
   </div>
 </section>
 
-<!-- Each section below is its own page. Only the one with class "on" shows. -->
+
 <main id="site" class="hidden max-w-3xl mx-auto px-4 sm:px-6 pb-24">
 
-  <!-- PAGE 1: HERO -->
+  
   <header id="home" class="page on pt-4 sm:pt-10">
     <div class="glass float px-6 sm:px-12 py-12 text-center">
       <button id="heroEmoji" class="text-6xl mb-4 transition-transform active:scale-90" aria-label="Confetti">🎂</button>
       <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight">
         Happy birthday, <span data-her></span>!
       </h1>
-      <!-- ✏️ EDIT: the welcome wish is set in CONFIG.welcome below -->
+      
       <p id="welcome" class="mt-5 text-lg sm:text-xl text-[color:var(--soft)] max-w-xl mx-auto"></p>
       <button id="start" class="btn btn-pri inline-block mt-8">Let’s start</button>
     </div>
   </header>
 
-  <!-- PAGE 2: QUIZ -->
+  
   <section id="quiz" class="page pt-4 sm:pt-10">
     <div class="glass p-6 sm:p-8">
       <div class="flex items-center justify-between text-sm font-medium text-[color:var(--soft)]">
@@ -175,7 +175,7 @@
     </div>
   </section>
 
-  <!-- PAGE 3: PLAYLIST, CAKE, WISH -->
+  
   <section id="curator" class="page pt-4 sm:pt-10 space-y-6">
     <div id="thinking" class="glass p-8 text-center">
       <p class="font-semibold">Putting your birthday together…</p>
@@ -184,7 +184,7 @@
     <div id="results" class="hidden space-y-6"></div>
   </section>
 
-  <!-- PAGE 4: PERSONAL NOTE -->
+  
   <section id="closing" class="page pt-4 sm:pt-10">
     <div class="glass glass-clear p-7 sm:p-10">
       <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">A little note from me</h2>
@@ -197,7 +197,7 @@
     </div>
   </section>
 
-  <!-- PAGE 5: CLAIM YOUR BIRTHDAY TREAT (last page) -->
+  
   <section id="treat" class="page pt-4 sm:pt-10">
     <div id="treatBox" class="glass glass-clear p-6 sm:p-8"></div>
     <footer class="mt-10 text-center text-sm text-[color:var(--soft)]">Made with care by <span data-me></span></footer>
@@ -205,28 +205,26 @@
 </main>
 
 <script>
-/* ============================================================
-   ✏️ EDIT HERE: names, wishes and your personal note
-   ============================================================ */
+
+  
 const CONFIG = {
-  herName: "Cherry",            // ✏️ her first name
-  siteName: "Curio",                 // ✏️ the "real site" name shown on the login page and browser tab
-  tagline: "Discover what you love.",   // ✏️ tagline under "Welcome back"
-  username: "cherry",              // ✏️ what she types to log in (not case sensitive)
-  password: "letmein",             // ✏️ her password (a fun gate, not real security)
-  hint: "Hint: Ekay knows the password.", // ✏️ shown after a wrong try or "Forgot password?"
-  yourName: "Ekay",          // ✏️ your name (signs the note, shown in the modal)
-  welcome: "Just a little something to show you how special you are", // ✏️ welcome wish
-  note: [                          // ✏️ one string per paragraph of your personal note
+  herName: "Cherry",            
+  siteName: "Curio",                
+  tagline: "Discover what you love.",   
+  username: "cherry",              
+  password: "letmein",             
+  hint: "Hint: Ekay knows the password.", 
+  yourName: "Ekay",         
+  welcome: "Just a little something to show you how special you are", 
+  note: [                          
     "I’m still learning what makes you, you. and honestly, that has been my favorite thing to do.",
     "I didn’t want to guess, so I built this and let you tell it.",
     "I hope today is full of good food, people who adore you, and a few surprises you didn’t see coming."
   ],
-  replyEmail: "marshall.mm1769@gmail.com",                  // ✏️ optional: where her answers get sent (email works best for long answers)
-  replyPhone: "+639953166935"                   // ✏️ optional, e.g. "+639171234567". If set, her reply opens as a text to you.
+  replyEmail: "marshall.mm1769@gmail.com",                  
 };
 
-/* ✏️ EDIT HERE: the 5 questions she types answers to. tone is "light" or "deep" (it only changes the little label). */
+
 const QUESTIONS = [
   { key:"q1", q:"What’s a tiny thing that instantly makes your day better?", ph:"Anything counts, big or small." },
   { key:"q2", q:"What song have you had on repeat lately, and why that one?", ph:"Be honest, even if it’s embarrassing." },
@@ -236,40 +234,39 @@ const QUESTIONS = [
   { key:"q6", q:"What's your non-negotiables?", ph:"anything"}
 ];
 
-/* ✏️ EDIT HERE: the playlist made just for her */
+
 const PLAYLIST = {
-  url:   "https://open.spotify.com/playlist/5B2MvWtgUNlCqnhKBy6OmR?si=hAZbtB66SG28y9-N8PZsMw",   // ✏️ paste your Spotify playlist link here (playlist links also show an inline player)
-  title: "Abyss", // ✏️ playlist name
-  note:  "I know I already sent this to you, but I added the last song today." // ✏️ your words about it
+  url:   "https://open.spotify.com/playlist/5B2MvWtgUNlCqnhKBy6OmR?si=hAZbtB66SG28y9-N8PZsMw",   
+  title: "Abyss",
+  note:  "I know I already sent this to you, but I added the last song today." 
 };
-/* ✏️ EDIT HERE: the cake and the birthday wish ({name} becomes her name) */
+
 const TREAT = { emoji:"🎂", name:"A cake with your name on it", text:"Make a wish, then blow out the candle." };
 const WISH  = "Happy birthday, {name}. I hope this year lets you be exactly who you are: unfiltered, unhurried, and loved for it. I also wish that you'll have enough time and freedom to explore and know yourself more. I remember you told me you always put others first so you didn't have time to know yourself. I hope this time you'll have that. Wait for your strawberries when I get back!";
 
-/* ============================================================ */
+
 const $ = s => document.querySelector(s);
 const state = { step:0, ans:{} };
 const fill = t => t.replace(/\{name\}/g, CONFIG.herName);
 
-// Fill names and static text from CONFIG
+
 document.querySelectorAll("[data-her]").forEach(e => e.textContent = CONFIG.herName);
 document.querySelectorAll("[data-me]").forEach(e => e.textContent = CONFIG.yourName);
 $("#welcome").textContent = CONFIG.welcome;
 CONFIG.note.forEach(t => { const p = document.createElement("p"); p.textContent = t; $("#note").appendChild(p); });
 
-/* ---------- Pages ---------- */
-// Page ids, in order: home → quiz → curator → closing
+
 function goPage(id, fromPop) {
   document.querySelectorAll(".page").forEach(p => p.classList.toggle("on", p.id === id));
   if (!fromPop) history.pushState({ p:id }, "");
   scrollTo(0, 0);
 }
-addEventListener("popstate", e => goPage((e.state && e.state.p) || "home", true)); // phone back button / swipe works between pages
+addEventListener("popstate", e => goPage((e.state && e.state.p) || "home", true)); 
 history.replaceState({ p:"home" }, "");
 $("#start").onclick = () => goPage("quiz");
 $("#backToWish").onclick = () => goPage("curator");
 
-/* ---------- Confetti ---------- */
+
 const cv = $("#fx"), cx = cv.getContext("2d");
 let P = [], raf = 0;
 const COL = ["#ff2d46","#ff6b7a","#1c3f94","#4a73d6","#ffffff","#b30f26"];
@@ -295,13 +292,13 @@ function tick() {
   }
   raf = P.length ? requestAnimationFrame(tick) : 0;
 }
-function splash() { // full-screen confetti splash
+function splash() {
   for (let i = 0; i < 9; i++) setTimeout(() => burst(innerWidth * (.1 + Math.random()*.8), innerHeight * (.2 + Math.random()*.35), 50, 1.3), i * 130);
 }
 $("#heroEmoji").onclick = e => burst(e.clientX, e.clientY, 50);
 
 
-/* ---------- Quiz (typed answers) ---------- */
+
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
 function renderQ() {
   const q = QUESTIONS[state.step], last = state.step === QUESTIONS.length - 1, box = $("#opts");
@@ -327,7 +324,7 @@ $("#back").onclick = () => {
 
 function finish() {
   $("#bar").style.width = "100%";
-  state.step = QUESTIONS.length - 1; renderQ(); // keep the quiz page ready in case she comes back to it
+  state.step = QUESTIONS.length - 1; renderQ(); 
   $("#thinking").classList.remove("hidden"); $("#results").classList.add("hidden");
   goPage("curator");
   setTimeout(() => { $("#thinking").classList.add("hidden"); renderResults(); }, 1400);
@@ -382,8 +379,7 @@ function renderResults() {
   };
 }
 
-/* ---------- Claim your treat (last page) ---------- */
-// ✏️ EDIT: the three invitation options
+
 const INVITES = [["☕","Coffee","a coffee date"],["🍽️","Dinner","dinner"],["🎡","Something fun","an activity of my choice"]];
 let picked = null;
 const sheet = $("#treatBox");
@@ -424,11 +420,11 @@ function showDone() {
   splash();
 }
 
-/* ---------- Gentle reveal on scroll ---------- */
+
 const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add("in")), { threshold:.15 });
 document.querySelectorAll(".reveal").forEach(el => io.observe(el));
 
-/* ---------- Site shell: login, game, reveal ---------- */
+
 document.title = `${CONFIG.siteName} | ${CONFIG.tagline.replace(/\.$/, "")}`;
 $("#brand").textContent = CONFIG.siteName; $("#logo").textContent = CONFIG.siteName[0];
 $("#tagline").textContent = CONFIG.tagline;
