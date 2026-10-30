@@ -61,11 +61,7 @@
   .flame.out { opacity:0; transform:scale(.2) translateY(-12px); }
   @keyframes flick { to { transform:scale(.92,1.08) rotate(-3deg); } }
 
-  /* iOS-style sheet modal */
-  #modal { position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; padding:1rem; opacity:0; pointer-events:none; transition:opacity .3s; }
-  #modal.open { opacity:1; pointer-events:auto; }
-  #sheet { transform:translateY(50px) scale(.94); transition:transform .55s var(--spring); max-height:92vh; overflow:auto; }
-  #modal.open #sheet { transform:none; }
+  /* Treat choices */
   .choice { display:flex; align-items:center; gap:.9rem; width:100%; padding:.9rem 1.1rem; border-radius:20px; text-align:left; background:rgba(255,255,255,.08); border:1.5px solid rgba(255,255,255,.2); cursor:pointer; transition:transform .3s var(--spring), border-color .2s; }
   .choice:active { transform:scale(.97); }
   .choice[aria-pressed="true"] { border-color:#ff2d46; background:rgba(255,45,70,.22); }
@@ -101,8 +97,6 @@
     .glass { border-radius:24px; -webkit-backdrop-filter:blur(14px) saturate(160%); backdrop-filter:blur(14px) saturate(160%); }
     .blob { filter:blur(60px); }
     .opt { padding:1.2rem .6rem; }
-    #modal { align-items:flex-end; padding:0; }
-    #sheet { max-width:none !important; border-radius:28px 28px 0 0; padding-bottom:calc(1.5rem + env(safe-area-inset-bottom)); max-height:88dvh; }
   }
 </style>
 </head>
@@ -190,26 +184,25 @@
     <div id="results" class="hidden space-y-6"></div>
   </section>
 
-  <!-- PAGE 4: PERSONAL NOTE + MODAL TRIGGER -->
+  <!-- PAGE 4: PERSONAL NOTE -->
   <section id="closing" class="page pt-4 sm:pt-10">
     <div class="glass glass-clear p-7 sm:p-10">
       <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">A little note from me</h2>
       <div id="note" class="mt-4 space-y-3 text-[17px] leading-relaxed"></div>
       <p class="mt-5 font-semibold">– <span data-me></span></p>
       <div class="flex flex-wrap gap-3 mt-7">
-        <button id="claim" class="btn btn-pri w-full sm:w-auto">Claim your birthday treat 🎁</button>
+        <button id="claim" class="btn btn-pri w-full sm:w-auto">One last surprise 🎁</button>
         <button id="backToWish" class="btn btn-glass w-full sm:w-auto">Back</button>
       </div>
     </div>
+  </section>
+
+  <!-- PAGE 5: CLAIM YOUR BIRTHDAY TREAT (last page) -->
+  <section id="treat" class="page pt-4 sm:pt-10">
+    <div id="treatBox" class="glass glass-clear p-6 sm:p-8"></div>
     <footer class="mt-10 text-center text-sm text-[color:var(--soft)]">Made with care by <span data-me></span></footer>
   </section>
 </main>
-
-<!-- Frosted modal -->
-<div id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
-  <div id="scrim" class="absolute inset-0 bg-black/55 backdrop-blur-sm"></div>
-  <div id="sheet" class="glass glass-clear relative w-full max-w-md p-6 sm:p-8"></div>
-</div>
 
 <script>
 /* ============================================================
@@ -389,15 +382,12 @@ function renderResults() {
   };
 }
 
-/* ---------- Modal ---------- */
+/* ---------- Claim your treat (last page) ---------- */
 // ✏️ EDIT: the three invitation options
 const INVITES = [["☕","Coffee","a coffee date"],["🍽️","Dinner","dinner"],["🎡","Something fun","an activity of my choice"]];
 let picked = null;
-const modal = $("#modal"), sheet = $("#sheet");
-const openModal = () => { picked = null; showChoose(); modal.classList.add("open"); };
-const closeModal = () => modal.classList.remove("open");
-$("#claim").onclick = openModal; $("#scrim").onclick = closeModal;
-addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+const sheet = $("#treatBox");
+$("#claim").onclick = () => { picked = null; showChoose(); goPage("treat"); };
 
 function showChoose() {
   sheet.innerHTML = `
@@ -406,13 +396,13 @@ function showChoose() {
     <p class="mt-2 text-[color:var(--soft)]">Pick what sounds good. You choose the day, I’ll handle the rest.</p></div>
     <div class="mt-5 space-y-3">${INVITES.map(([e, l, v], i) => `<button class="choice" data-i="${i}" aria-pressed="false"><span class="text-2xl">${e}</span><span class="font-semibold">${l}</span></button>`).join("")}</div>
     <input id="extra" class="mt-4 w-full rounded-2xl px-4 py-3 bg-white/10 border border-white/25 outline-none focus:ring-2 focus:ring-red-500 placeholder:text-white/50" placeholder="Any day, place, or idea in mind? (optional)">
-    <div class="flex gap-3 mt-5"><button id="cancel" class="btn btn-glass flex-1">Not yet</button><button id="go" class="btn btn-pri flex-1 opacity-50" disabled>Send my pick</button></div>`;
+    <div class="flex gap-3 mt-5"><button id="cancel" class="btn btn-glass flex-1">Back</button><button id="go" class="btn btn-pri flex-1 opacity-50" disabled>Send my pick</button></div>`;
   sheet.querySelectorAll(".choice").forEach(b => b.onclick = () => {
     picked = INVITES[b.dataset.i];
     sheet.querySelectorAll(".choice").forEach(x => x.setAttribute("aria-pressed", x === b));
     $("#go").disabled = false; $("#go").classList.remove("opacity-50");
   });
-  $("#cancel").onclick = closeModal;
+  $("#cancel").onclick = () => goPage("closing");
   $("#go").onclick = showDone;
 }
 
@@ -424,13 +414,13 @@ function showDone() {
     <h3 id="mTitle" class="text-2xl font-bold tracking-tight mt-2">It’s a date</h3>
     <p class="mt-2 text-[color:var(--soft)]">Send this to <span data-me></span> so we can pick a day.</p>
     <p id="msgBox" class="mt-4 p-4 rounded-2xl bg-white/10 border border-white/25 text-left"></p></div>
-    <div class="flex gap-3 mt-5"><button id="close" class="btn btn-glass flex-1">Close</button><a id="send" class="btn btn-pri flex-1 text-center">Send message</a></div>`;
+    <div class="flex gap-3 mt-5"><button id="close" class="btn btn-glass flex-1">Change my pick</button><a id="send" class="btn btn-pri flex-1 text-center">Send message</a></div>`;
   $("#msgBox").textContent = msg;
   sheet.querySelector("[data-me]").textContent = CONFIG.yourName;
   const send = $("#send");
   if (CONFIG.replyPhone) send.href = `sms:${CONFIG.replyPhone}?&body=${encodeURIComponent(msg)}`;
   else send.onclick = async () => { try { await navigator.clipboard.writeText(msg); send.textContent = "Copied. Paste it to me!"; } catch { send.textContent = "Screenshot this for me!"; } };
-  $("#close").onclick = closeModal;
+  $("#close").onclick = () => { picked = null; showChoose(); };
   splash();
 }
 
