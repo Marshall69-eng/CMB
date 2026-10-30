@@ -271,7 +271,9 @@ const CONFIG = {
     "I didn’t want to guess, so I built this and let you tell it.",
     "I hope today is full of good food, people who adore you, and a few surprises you didn’t see coming."
   ],
-  secret: "You found it! I hope I made your day a little better with this. Just know that I wil always be by your side, even at worst. I'm you're someone who stay. Happy birthday, my abyss.", // ✏️ the hidden message (tap the logo 5 times). Make it something only you would say; {name} becomes her name
+  secret: "You actually tapped that tiny logo five times. Only someone curious would, and I like that about you. Happy birthday, {name}.", // ✏️ the hidden message (tap the logo 5 times). Make it something only you would say; {name} becomes her name
+  emailKey: "",                     // ✏️ free Web3Forms access key (web3forms.com, no signup: the key is emailed to you). With it, her redeemed voucher and shared answers are emailed to you automatically. Leave "" to skip.
+  messenger: "",                    // ✏️ your Messenger username (the part after facebook.com/ or m.me/). Her "Redeem voucher" message goes to this chat. Leave "" to skip.
   replyEmail: "marshall.mm1769@gmail.com",                  // ✏️ optional: where her answers get sent (email works best for long answers)
 };
 
@@ -299,6 +301,18 @@ const WISH  = "Happy birthday, {name}. I hope this year lets you be exactly who 
 const $ = s => document.querySelector(s);
 const state = { step:0, ans:{} };
 const fill = t => t.replace(/\{name\}/g, CONFIG.herName);
+
+// Sends an email to you through Web3Forms (the access key is public by design). Resolves true if it went through.
+async function sendToEmail(subject, message) {
+  if (!CONFIG.emailKey) return false;
+  try {
+    const r = await fetch("https://api.web3forms.com/submit", {
+      method:"POST", headers:{ "Content-Type":"application/json", "Accept":"application/json" },
+      body: JSON.stringify({ access_key:CONFIG.emailKey, subject, from_name:CONFIG.siteName, message })
+    });
+    return !!(await r.json()).success;
+  } catch { return false; }
+}
 
 // Fill names and static text from CONFIG
 document.querySelectorAll("[data-her]").forEach(e => e.textContent = CONFIG.herName);
@@ -421,11 +435,18 @@ function renderResults() {
   $("#again").onclick = () => { state.step = 0; renderQ(); goPage("quiz"); };
   $("#toNote").onclick = () => goPage("closing");
   $("#share").onclick = async e => {
+    const b = e.currentTarget;
     const body = `Hi ${CONFIG.yourName}, here are my answers:\n\n` + QUESTIONS.map(q => `${q.q}\n${state.ans[q.key] || "(skipped)"}`).join("\n\n");
+    if (CONFIG.emailKey && !b.dataset.failed) {
+      b.disabled = true; b.textContent = "Sending…";
+      const ok = await sendToEmail(`💌 ${CONFIG.herName}’s answers`, body);
+      if (ok) { b.textContent = "Sent ✓"; return; }
+      b.disabled = false; b.dataset.failed = "1"; b.textContent = "Couldn’t send. Tap to use your email app"; return;
+    }
     if (CONFIG.replyEmail) location.href = `mailto:${CONFIG.replyEmail}?subject=${encodeURIComponent("My answers")}&body=${encodeURIComponent(body)}`;
     else if (CONFIG.replyPhone) location.href = `sms:${CONFIG.replyPhone}?&body=${encodeURIComponent(body)}`;
     else {
-      try { await navigator.clipboard.writeText(body); e.target.textContent = "Copied. Paste it to me!"; }
+      try { await navigator.clipboard.writeText(body); b.textContent = "Copied. Paste it to me!"; }
       catch { $("#shareBox").value = body; $("#shareBox").classList.remove("hidden"); }
     }
   };
@@ -460,7 +481,8 @@ function showChoose() {
     <div class="mt-5">${ticket(picked && picked[3], picked ? picked[0] : "🎁")}</div>
     <div class="mt-5 space-y-3">${INVITES.map(([e, l, v], i) => `<button class="choice" data-i="${i}" aria-pressed="false"><span class="text-2xl">${e}</span><span class="font-semibold">${l}</span></button>`).join("")}</div>
     <input id="extra" class="mt-4 w-full rounded-2xl px-4 py-3 bg-white/10 border border-white/25 outline-none focus:ring-2 focus:ring-red-500 placeholder:text-white/50" placeholder="Any day, place, or idea in mind? (optional)">
-    <div class="flex gap-3 mt-5"><button id="cancel" class="btn btn-glass flex-1">Back</button><button id="go" class="btn btn-pri flex-1 opacity-50" disabled>Redeem voucher 🎟️</button></div>`;
+    <div class="flex gap-3 mt-5"><button id="cancel" class="btn btn-glass flex-1">Back</button><button id="go" class="btn btn-pri flex-1 opacity-50" disabled>Redeem voucher 🎟️</button></div>${CONFIG.emailKey ? `
+    <p class="mt-3 text-xs text-center text-[color:var(--soft)]">Redeeming lets ${esc(CONFIG.yourName)} know which one you picked.</p>` : ""}`;
   sheet.querySelectorAll(".choice").forEach(b => b.onclick = () => {
     picked = INVITES[b.dataset.i];
     sheet.querySelectorAll(".choice").forEach(x => x.setAttribute("aria-pressed", x === b));
@@ -479,14 +501,35 @@ function showDone() {
     ${ticket(picked[3], picked[0], true)}
     <div class="text-center mt-6">
     <h3 id="mTitle" class="text-2xl font-bold tracking-tight">It’s a date</h3>
-    <p class="mt-2 text-[color:var(--soft)]">Send this to <span data-me></span> so we can pick a day.</p>
+    <p id="sNote" class="mt-2 text-[color:var(--soft)]">Send this to <span data-me></span> so we can pick a day.</p>
     <p id="msgBox" class="mt-4 p-4 rounded-2xl bg-white/10 border border-white/25 text-left"></p></div>
-    <div class="flex gap-3 mt-5"><button id="close" class="btn btn-glass flex-1">Change my pick</button><a id="send" class="btn btn-pri flex-1 text-center">Send message</a></div>`;
+    <div class="flex gap-3 mt-5"><button id="close" class="btn btn-glass flex-1">Change my pick</button><a id="send" class="btn btn-pri flex-1 text-center">Send message</a></div>
+    <p id="sHint" class="mt-3 text-sm text-center text-[color:var(--soft)] min-h-[1.25rem]" role="status"></p>`;
   $("#msgBox").textContent = msg;
   sheet.querySelector("[data-me]").textContent = CONFIG.yourName;
-  const send = $("#send");
-  if (CONFIG.replyPhone) send.href = `sms:${CONFIG.replyPhone}?&body=${encodeURIComponent(msg)}`;
-  else send.onclick = async () => { try { await navigator.clipboard.writeText(msg); send.textContent = "Copied. Paste it to me!"; } catch { send.textContent = "Screenshot this for me!"; } };
+  const send = $("#send"), hint = $("#sHint"), note = $("#sNote");
+  const manual = () => {
+    if (CONFIG.messenger) {
+      // A web page can't pre-fill or auto-send a Messenger message, so this copies her message and opens your chat. She pastes and sends.
+      send.textContent = "Send on Messenger 💬";
+      send.href = `https://m.me/${encodeURIComponent(CONFIG.messenger)}`; send.target = "_blank"; send.rel = "noopener";
+      $("#sHint").textContent = "Tap the button. Your message gets copied, then paste it in the chat.";
+      send.addEventListener("click", () => {
+        (navigator.clipboard ? navigator.clipboard.writeText(msg) : Promise.reject())
+          .then(() => $("#sHint").textContent = "Copied! Paste it in the chat and hit send 💌")
+          .catch(() => $("#sHint").textContent = "Press and hold the message above to copy it, then paste it in the chat.");
+      });
+    } else if (CONFIG.replyPhone) send.href = `sms:${CONFIG.replyPhone}?&body=${encodeURIComponent(msg)}`;
+    else if (CONFIG.replyEmail) send.href = `mailto:${CONFIG.replyEmail}?subject=${encodeURIComponent("I’d love to claim my birthday treat")}&body=${encodeURIComponent(msg)}`;
+    else send.onclick = async () => { try { await navigator.clipboard.writeText(msg); send.textContent = "Copied. Paste it to me!"; } catch { send.textContent = "Screenshot this for me!"; } };
+  };
+  if (CONFIG.emailKey) { // email it to you automatically; fall back to the manual button if that fails
+    send.classList.add("hidden"); hint.textContent = `Letting ${CONFIG.yourName} know…`;
+    sendToEmail(`🎟️ ${CONFIG.herName} redeemed her birthday voucher`, msg).then(ok => {
+      if (ok) { note.textContent = `Sent to ${CONFIG.yourName} so we can pick a day.`; hint.textContent = "Sent ✓ 💌"; }
+      else { send.classList.remove("hidden"); manual(); hint.textContent = "Couldn’t send it automatically. Tap the button to send it yourself."; }
+    });
+  } else manual();
   $("#close").onclick = () => { picked = null; showChoose(); };
   setTimeout(splash, 350);
 }
