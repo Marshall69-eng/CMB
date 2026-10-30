@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#05060b">
+<title>Curio | Discover what you love</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23c0102a'/%3E%3C/svg%3E">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>
+  tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', '-apple-system', 'SF Pro Display', 'system-ui', 'sans-serif'] } } } };
+</script>
+<style>
+  :root { color-scheme:dark; --ink:#f3f4f8; --soft:#a9b4cf; --spring:cubic-bezier(.34,1.56,.64,1); }
+  html { scroll-behavior:smooth; }
+  body { color:var(--ink); background:#05060b; min-height:100vh; overflow-x:hidden; }
+
+  /* Ambient mesh gradient blobs */
+  .blob { position:fixed; border-radius:9999px; filter:blur(80px); opacity:.6; z-index:-1; animation:drift 20s ease-in-out infinite alternate; }
+  @keyframes drift { to { transform:translate(70px,-50px) scale(1.18); } }
+
+  /* iOS glass surface */
+  .glass {
+    position:relative; border-radius:28px;
+    background:linear-gradient(115deg,rgba(255,255,255,.16),rgba(255,255,255,0) 42%),
+               linear-gradient(135deg,rgba(255,255,255,.09),rgba(255,255,255,.03));
+    -webkit-backdrop-filter:blur(22px) saturate(170%); backdrop-filter:blur(22px) saturate(170%);
+    border:1px solid rgba(255,255,255,.2);
+    box-shadow:0 14px 44px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.3), inset 0 -1px 0 rgba(255,255,255,.06);
+  }
+  .glass-clear { background:linear-gradient(135deg,rgba(255,255,255,.14),rgba(255,255,255,.06)); }
+
+  .btn { padding:.9rem 1.6rem; border-radius:9999px; font-weight:600; cursor:pointer; transition:transform .35s var(--spring), box-shadow .3s; }
+  @media (hover:hover) { .btn:hover { transform:scale(1.05); } .opt:hover { transform:translateY(-4px) scale(1.04); } } .btn:active { transform:scale(.95); }
+  .btn:focus-visible, .opt:focus-visible, .choice:focus-visible { outline:3px solid #ff5a6b; outline-offset:3px; }
+  .btn-pri { color:#fff; background:linear-gradient(135deg,#ff3b4a,#a80f24); box-shadow:0 8px 28px rgba(255,45,70,.4), inset 0 1px 0 rgba(255,255,255,.4); }
+  .btn-glass { background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.25); box-shadow:inset 0 1px 0 rgba(255,255,255,.3); }
+
+  .opt { display:flex; flex-direction:column; align-items:center; gap:.5rem; padding:1.5rem 1rem; text-align:center; cursor:pointer;
+         transition:transform .35s var(--spring), box-shadow .3s; animation:pop .55s both var(--spring); }
+  .opt:active { transform:scale(.94); }
+  .opt.picked { outline:2px solid #ff2d46; transform:scale(1.05); }
+  @keyframes pop { from { opacity:0; transform:translateY(18px) scale(.9); } }
+
+  .float { animation:float 6s ease-in-out infinite; } @keyframes float { 50% { transform:translateY(-10px); } }
+  .shimmer { background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.3),rgba(255,255,255,.05)); background-size:200% 100%; animation:sh 1.2s linear infinite; border-radius:12px; }
+  @keyframes sh { to { background-position:-200% 0; } }
+
+  /* Equalizer bars on the playlist cover */
+  .eq { display:flex; gap:4px; align-items:flex-end; height:34px; }
+  .eq span { width:6px; border-radius:3px; background:#fff; animation:eq .9s ease-in-out infinite alternate; }
+  .eq span:nth-child(2){animation-delay:.2s} .eq span:nth-child(3){animation-delay:.4s} .eq span:nth-child(4){animation-delay:.1s}
+  @keyframes eq { from { height:20%; } to { height:100%; } }
+
+  /* Candle */
+  .candle { width:10px; height:34px; border-radius:4px; background:repeating-linear-gradient(45deg,#fff,#fff 5px,#ff4d5e 5px,#ff4d5e 10px); margin-bottom:-18px; position:relative; z-index:2; }
+  .flame { position:absolute; left:50%; top:-26px; width:14px; height:24px; margin-left:-7px; border-radius:50% 50% 50% 50%/62% 62% 38% 38%;
+           background:radial-gradient(circle at 50% 72%,#fff7c2,#ffb84d 55%,#ff7a45); box-shadow:0 0 20px 7px rgba(255,190,90,.6);
+           animation:flick .2s ease-in-out infinite alternate; transition:opacity .4s, transform .4s; }
+  .flame.out { opacity:0; transform:scale(.2) translateY(-12px); }
+  @keyframes flick { to { transform:scale(.92,1.08) rotate(-3deg); } }
+
+  /* iOS-style sheet modal */
+  #modal { position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center; padding:1rem; opacity:0; pointer-events:none; transition:opacity .3s; }
+  #modal.open { opacity:1; pointer-events:auto; }
+  #sheet { transform:translateY(50px) scale(.94); transition:transform .55s var(--spring); max-height:92vh; overflow:auto; }
+  #modal.open #sheet { transform:none; }
+  .choice { display:flex; align-items:center; gap:.9rem; width:100%; padding:.9rem 1.1rem; border-radius:20px; text-align:left; background:rgba(255,255,255,.08); border:1.5px solid rgba(255,255,255,.2); cursor:pointer; transition:transform .3s var(--spring), border-color .2s; }
+  .choice:active { transform:scale(.97); }
+  .choice[aria-pressed="true"] { border-color:#ff2d46; background:rgba(255,45,70,.22); }
+
+  .reveal { opacity:0; transform:translateY(24px); transition:opacity .8s, transform .8s var(--spring); } .reveal.in { opacity:1; transform:none; }
+  #fx { position:fixed; inset:0; pointer-events:none; z-index:60; }
+
+  /* ---- Pages: only one section is visible at a time ---- */
+  .page { display:none; }
+  .page.on { display:block; animation:pageIn .45s ease backwards; }
+  @keyframes pageIn { from { opacity:0; transform:translateY(14px); } }
+
+  @media (prefers-reduced-motion:reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } .reveal { opacity:1; transform:none; } }
+
+  /* ---- Site shell, login, game, phone tweaks ---- */
+  * { -webkit-tap-highlight-color:transparent; } button, a { touch-action:manipulation; }
+  body { min-height:100dvh; }
+  .stage { display:none; min-height:calc(100vh - 5rem); min-height:calc(100dvh - 5rem); align-items:center; justify-content:center; padding:1rem 1rem calc(2rem + env(safe-area-inset-bottom)); }
+  .stage.on { display:flex; }
+  #userChip { display:none; } #userChip.on { display:flex; }
+  .field { width:100%; padding:.95rem 1rem; border-radius:16px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.22); color:var(--ink); font-size:16px; outline:none; }
+  .field:focus { border-color:#ff2d46; box-shadow:0 0 0 3px rgba(255,45,70,.25); } .field::placeholder { color:rgba(255,255,255,.45); }
+  .shake { animation:shake .4s; } @keyframes shake { 25% { transform:translateX(-8px); } 75% { transform:translateX(8px); } }
+  .card { aspect-ratio:1; perspective:600px; cursor:pointer; }
+  .card .in { position:relative; width:100%; height:100%; transform-style:preserve-3d; transition:transform .5s var(--spring); }
+  .card.flip .in, .card.done .in { transform:rotateY(180deg); }
+  .card .b, .card .f { position:absolute; inset:0; display:grid; place-items:center; border-radius:18px; backface-visibility:hidden; -webkit-backface-visibility:hidden; }
+  .card .b { background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(255,255,255,.05)); border:1px solid rgba(255,255,255,.25); font-size:1.3rem; color:rgba(255,255,255,.5); }
+  .card .f { transform:rotateY(180deg); background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.3); font-size:clamp(1.5rem,8vw,2.3rem); }
+  .card.done .f { background:rgba(255,45,70,.25); border-color:#ff2d46; }
+  .opt:last-child:nth-child(odd) { grid-column:1/-1; }
+  @media (max-width:639px) {
+    .glass { border-radius:24px; -webkit-backdrop-filter:blur(14px) saturate(160%); backdrop-filter:blur(14px) saturate(160%); }
+    .blob { filter:blur(60px); }
+    .opt { padding:1.2rem .6rem; }
+    #modal { align-items:flex-end; padding:0; }
+    #sheet { max-width:none !important; border-radius:28px 28px 0 0; padding-bottom:calc(1.5rem + env(safe-area-inset-bottom)); max-height:88dvh; }
+  }
+</style>
+</head>
+<body class="font-sans antialiased">
+
+<!-- Ambient mesh background -->
+<div class="blob" style="width:42vw;height:42vw;left:-10vw;top:-8vw;background:#12358c"></div>
+<div class="blob" style="width:38vw;height:38vw;right:-8vw;top:10vh;background:#d6102a;animation-delay:-6s"></div>
+<div class="blob" style="width:44vw;height:44vw;left:20vw;bottom:-14vw;background:#0b2a6e;animation-delay:-11s"></div>
+<div class="blob" style="width:26vw;height:26vw;right:12vw;bottom:8vh;background:#ff3b4a;animation-delay:-3s"></div>
+<canvas id="fx"></canvas>
+
+<nav class="sticky top-0 z-40 px-3 sm:px-6" style="padding-top:max(.6rem,env(safe-area-inset-top))">
+  <div class="glass max-w-3xl mx-auto flex items-center justify-between px-4 py-2.5 !rounded-2xl">
+    <div class="flex items-center gap-2.5"><div id="logo" class="w-8 h-8 rounded-xl bg-gradient-to-br from-[#ff2d46] to-[#12358c] grid place-items-center font-extrabold text-sm"></div><span id="brand" class="font-bold tracking-tight"></span></div>
+    <div id="userChip" class="items-center gap-2 text-sm"><span id="userName" class="hidden sm:inline text-[color:var(--soft)]"></span><div id="avatar" class="w-8 h-8 rounded-full bg-white/15 border border-white/25 grid place-items-center font-semibold"></div></div>
+  </div>
+</nav>
+
+<!-- LOGIN -->
+<section id="login" class="stage on">
+  <div id="loginCard" class="glass w-full max-w-sm p-6 sm:p-8">
+    <h1 class="text-3xl font-extrabold tracking-tight">Welcome</h1>
+    <p id="tagline" class="mt-1 text-[color:var(--soft)]"></p>
+    <div class="mt-6 space-y-3">
+      <input id="u" class="field" placeholder="Username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next">
+      <input id="p" type="password" class="field" placeholder="Password" autocomplete="current-password" autocapitalize="none" autocorrect="off" enterkeyhint="go">
+    </div>
+    <p id="err" class="mt-3 text-sm min-h-[1.25rem]" role="alert"></p>
+    <button id="signin" class="btn btn-pri w-full mt-2">Sign in</button>
+    <p class="mt-4 text-center text-sm text-[color:var(--soft)]"><button id="forgot" class="underline underline-offset-4 py-1">Forgot password?</button></p>
+  </div>
+</section>
+
+<!-- GAME -->
+<section id="game" class="stage">
+  <div class="glass w-full max-w-md p-5 sm:p-7 text-center">
+    <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">Quick warm-up</h2>
+    <p class="mt-1 text-[color:var(--soft)]">Match every pair to unlock your dashboard.</p>
+    <div class="flex justify-between text-sm mt-4 px-1 text-[color:var(--soft)]"><span>Moves: <b id="moves" class="text-[color:var(--ink)]">0</b></span><span>Pairs: <b id="pairs" class="text-[color:var(--ink)]">0/6</b></span></div>
+    <div id="board" class="grid grid-cols-4 gap-2 sm:gap-3 mt-4"></div>
+    <p id="gmsg" class="mt-4 font-semibold min-h-[1.5rem]"></p>
+    <button id="skip" class="hidden text-sm underline underline-offset-4 text-[color:var(--soft)] py-1">Skip</button>
+  </div>
+</section>
+
+<!-- Each section below is its own page. Only the one with class "on" shows. -->
+<main id="site" class="hidden max-w-3xl mx-auto px-4 sm:px-6 pb-24">
+
+  <!-- PAGE 1: HERO -->
+  <header id="home" class="page on pt-4 sm:pt-10">
+    <div class="glass float px-6 sm:px-12 py-12 text-center">
+      <button id="heroEmoji" class="text-6xl mb-4 transition-transform active:scale-90" aria-label="Confetti">🎂</button>
+      <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight">
+        Happy birthday, <span data-her></span>!
+      </h1>
+      <!-- ✏️ EDIT: the welcome wish is set in CONFIG.welcome below -->
+      <p id="welcome" class="mt-5 text-lg sm:text-xl text-[color:var(--soft)] max-w-xl mx-auto"></p>
+      <button id="start" class="btn btn-pri inline-block mt-8">Let’s start</button>
+    </div>
+  </header>
+
+  <!-- PAGE 2: QUIZ -->
+  <section id="quiz" class="page pt-4 sm:pt-10">
+    <div class="glass p-6 sm:p-8">
+      <div class="flex items-center justify-between text-sm font-medium text-[color:var(--soft)]">
+        <button id="back" class="btn-glass rounded-full px-4 py-1.5" style="visibility:hidden">Back</button>
+        <span id="qNum"></span>
+      </div>
+      <div class="h-2 rounded-full bg-white/15 mt-3 overflow-hidden">
+        <div id="bar" class="h-full rounded-full bg-gradient-to-r from-[#ff2d46] to-[#1c3f94] transition-all duration-500" style="width:0"></div>
+      </div>
+      <p class="mt-6 text-sm text-[color:var(--soft)]">No wrong answers and no filters needed. Skip anything you don’t feel like answering.</p>
+      <h2 id="qText" class="text-2xl sm:text-3xl font-bold tracking-tight mt-3 mb-4"></h2>
+      <div id="opts" class="space-y-3"></div>
+    </div>
+  </section>
+
+  <!-- PAGE 3: PLAYLIST, CAKE, WISH -->
+  <section id="curator" class="page pt-4 sm:pt-10 space-y-6">
+    <div id="thinking" class="glass p-8 text-center">
+      <p class="font-semibold">Putting your birthday together…</p>
+      <div class="shimmer h-3 mt-4 mx-auto w-2/3"></div><div class="shimmer h-3 mt-3 mx-auto w-1/2"></div>
+    </div>
+    <div id="results" class="hidden space-y-6"></div>
+  </section>
+
+  <!-- PAGE 4: PERSONAL NOTE + MODAL TRIGGER -->
+  <section id="closing" class="page pt-4 sm:pt-10">
+    <div class="glass glass-clear p-7 sm:p-10">
+      <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">A little note from me</h2>
+      <div id="note" class="mt-4 space-y-3 text-[17px] leading-relaxed"></div>
+      <p class="mt-5 font-semibold">– <span data-me></span></p>
+      <div class="flex flex-wrap gap-3 mt-7">
+        <button id="claim" class="btn btn-pri w-full sm:w-auto">Claim your birthday treat 🎁</button>
+        <button id="backToWish" class="btn btn-glass w-full sm:w-auto">Back</button>
+      </div>
+    </div>
+    <footer class="mt-10 text-center text-sm text-[color:var(--soft)]">Made with care by <span data-me></span></footer>
+  </section>
+</main>
+
+<!-- Frosted modal -->
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div id="scrim" class="absolute inset-0 bg-black/55 backdrop-blur-sm"></div>
+  <div id="sheet" class="glass glass-clear relative w-full max-w-md p-6 sm:p-8"></div>
+</div>
+
+<script>
+/* ============================================================
+   ✏️ EDIT HERE: names, wishes and your personal note
+   ============================================================ */
+const CONFIG = {
+  herName: "Cherry",            // ✏️ her first name
+  siteName: "Curio",                 // ✏️ the "real site" name shown on the login page and browser tab
+  tagline: "Discover what you love.",   // ✏️ tagline under "Welcome back"
+  username: "cherry",              // ✏️ what she types to log in (not case sensitive)
+  password: "letmein",             // ✏️ her password (a fun gate, not real security)
+  hint: "Hint: Ekay knows the password.", // ✏️ shown after a wrong try or "Forgot password?"
+  yourName: "Ekay",          // ✏️ your name (signs the note, shown in the modal)
+  welcome: "Just a little something to show you how special you are", // ✏️ welcome wish
+  note: [                          // ✏️ one string per paragraph of your personal note
+    "I’m still learning what makes you, you. and honestly, that has been my favorite thing to do.",
+    "I didn’t want to guess, so I built this and let you tell it.",
+    "I hope today is full of good food, people who adore you, and a few surprises you didn’t see coming."
+  ],
+  replyEmail: "marshall.mm1769@gmail.com",                  // ✏️ optional: where her answers get sent (email works best for long answers)
+  replyPhone: "+639953166935"                   // ✏️ optional, e.g. "+639171234567". If set, her reply opens as a text to you.
+};
+
+/* ✏️ EDIT HERE: the 5 questions she types answers to. tone is "light" or "deep" (it only changes the little label). */
+const QUESTIONS = [
+  { key:"q1", q:"What’s a tiny thing that instantly makes your day better?", ph:"Anything counts, big or small." },
+  { key:"q2", q:"What song have you had on repeat lately, and why that one?", ph:"Be honest, even if it’s embarrassing." },
+  { key:"q3", q:"What’s something you’re proud of that you hardly ever talk about?", ph:"Take your time. There’s no right answer." },
+  { key:"q4", q:"What do you wish more people understood about you?", ph:"Say it the way you’d tell a close friend." },
+  { key:"q5", q:"What movie/series/book that made you cry?", ph:"Walk me through it." },
+  { key:"q6", q:"What's your non-negotiables?", ph:"anything"}
+];
+
+/* ✏️ EDIT HERE: the playlist made just for her */
+const PLAYLIST = {
+  url:   "https://open.spotify.com/playlist/5B2MvWtgUNlCqnhKBy6OmR?si=hAZbtB66SG28y9-N8PZsMw",   // ✏️ paste your Spotify playlist link here (playlist links also show an inline player)
+  title: "Abyss", // ✏️ playlist name
+  note:  "I know I already sent this to you but, I added the last song today." // ✏️ your words about it
+};
+/* ✏️ EDIT HERE: the cake and the birthday wish ({name} becomes her name) */
+const TREAT = { emoji:"🎂", name:"A cake with your name on it", text:"Make a wish, then blow out the candle." };
+const WISH  = "Happy birthday, {name}. I hope this year lets you be exactly who you are: unfiltered, unhurried, and loved for it. I also wish that you'll have enough time and freedom to explore and know yourself more. I remember you told me, you always put others first so you didn't have time to know you. I hope this time you'll have that. Wait for your strawberries when I get back.";
+
+/* ============================================================ */
+const $ = s => document.querySelector(s);
+const state = { step:0, ans:{} };
+const fill = t => t.replace(/\{name\}/g, CONFIG.herName);
+
+// Fill names and static text from CONFIG
+document.querySelectorAll("[data-her]").forEach(e => e.textContent = CONFIG.herName);
+document.querySelectorAll("[data-me]").forEach(e => e.textContent = CONFIG.yourName);
+$("#welcome").textContent = CONFIG.welcome;
+CONFIG.note.forEach(t => { const p = document.createElement("p"); p.textContent = t; $("#note").appendChild(p); });
+
+/* ---------- Pages ---------- */
+// Page ids, in order: home → quiz → curator → closing
+function goPage(id, fromPop) {
+  document.querySelectorAll(".page").forEach(p => p.classList.toggle("on", p.id === id));
+  if (!fromPop) history.pushState({ p:id }, "");
+  scrollTo(0, 0);
+}
+addEventListener("popstate", e => goPage((e.state && e.state.p) || "home", true)); // phone back button / swipe works between pages
+history.replaceState({ p:"home" }, "");
+$("#start").onclick = () => goPage("quiz");
+$("#backToWish").onclick = () => goPage("curator");
+
+/* ---------- Confetti ---------- */
+const cv = $("#fx"), cx = cv.getContext("2d");
+let P = [], raf = 0;
+const COL = ["#ff2d46","#ff6b7a","#1c3f94","#4a73d6","#ffffff","#b30f26"];
+const fit = () => { cv.width = innerWidth; cv.height = innerHeight; };
+addEventListener("resize", fit); fit();
+function burst(x, y, n = 40, power = 1) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, s = (3 + Math.random() * 7) * power;
+    P.push({ x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s - 4, r:5 + Math.random()*5, c:COL[i % COL.length],
+             rot:Math.random()*6, vr:(Math.random()-.5)*.4, life:1, sq:Math.random() > .5 });
+  }
+  if (!raf) raf = requestAnimationFrame(tick);
+}
+function tick() {
+  cx.clearRect(0, 0, cv.width, cv.height);
+  P = P.filter(p => p.life > 0 && p.y < cv.height + 20);
+  for (const p of P) {
+    p.vy += .22; p.vx *= .985; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life -= .007;
+    cx.save(); cx.globalAlpha = Math.max(p.life, 0); cx.translate(p.x, p.y); cx.rotate(p.rot); cx.fillStyle = p.c;
+    if (p.sq) cx.fillRect(-p.r/2, -p.r/2, p.r, p.r*1.6);
+    else { cx.beginPath(); cx.arc(0, 0, p.r/2, 0, 7); cx.fill(); }
+    cx.restore();
+  }
+  raf = P.length ? requestAnimationFrame(tick) : 0;
+}
+function splash() { // full-screen confetti splash
+  for (let i = 0; i < 9; i++) setTimeout(() => burst(innerWidth * (.1 + Math.random()*.8), innerHeight * (.2 + Math.random()*.35), 50, 1.3), i * 130);
+}
+$("#heroEmoji").onclick = e => burst(e.clientX, e.clientY, 50);
+
+
+/* ---------- Quiz (typed answers) ---------- */
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
+function renderQ() {
+  const q = QUESTIONS[state.step], last = state.step === QUESTIONS.length - 1, box = $("#opts");
+  $("#qNum").textContent = `Question ${state.step + 1} of ${QUESTIONS.length}`;
+  $("#bar").style.width = `${(state.step / QUESTIONS.length) * 100}%`;
+  $("#qText").textContent = q.q;
+  $("#back").style.visibility = state.step ? "visible" : "hidden";
+  box.innerHTML = `<span class="inline-block px-3 py-1 rounded-full bg-white/10 border border-white/25 text-sm text-[color:var(--soft)]">${q.tone === "deep" ? "A deeper one" : "A light one"}</span>
+    <textarea id="ans" class="field resize-none" rows="5" maxlength="1200"></textarea>
+    <div class="flex items-center justify-between gap-3"><button id="skipQ" class="text-sm underline underline-offset-4 text-[color:var(--soft)] py-2">Skip this one</button><button id="next" class="btn btn-pri">${last ? "Finish" : "Next"}</button></div>`;
+  const ta = $("#ans"), next = $("#next");
+  ta.placeholder = q.ph; ta.value = state.ans[q.key] || "";
+  const sync = () => { next.disabled = !ta.value.trim(); next.classList.toggle("opacity-50", next.disabled); };
+  ta.oninput = sync; sync();
+  const go = v => { state.ans[q.key] = v; state.step++; state.step < QUESTIONS.length ? renderQ() : finish(); };
+  next.onclick = () => go(ta.value.trim());
+  $("#skipQ").onclick = () => go("");
+}
+$("#back").onclick = () => {
+  const ta = $("#ans");
+  if (state.step) { if (ta) state.ans[QUESTIONS[state.step].key] = ta.value.trim(); state.step--; renderQ(); }
+};
+
+function finish() {
+  $("#bar").style.width = "100%";
+  state.step = QUESTIONS.length - 1; renderQ(); // keep the quiz page ready in case she comes back to it
+  $("#thinking").classList.remove("hidden"); $("#results").classList.add("hidden");
+  goPage("curator");
+  setTimeout(() => { $("#thinking").classList.add("hidden"); renderResults(); }, 1400);
+}
+
+function renderResults() {
+  const url = PLAYLIST.url, canEmbed = /open\.spotify\.com\/(playlist|album|track)\//.test(url);
+  const embed = url.replace("open.spotify.com/", "open.spotify.com/embed/");
+  const r = $("#results");
+  r.innerHTML = `
+    <div class="glass p-6 sm:p-8">
+      <div class="flex flex-col sm:flex-row gap-5 items-center">
+        <div class="w-32 h-32 sm:w-40 sm:h-40 shrink-0 rounded-3xl bg-gradient-to-br from-[#ff2d46] to-[#0b1f4d] flex items-center justify-center shadow-lg border border-white/25"><div class="eq"><span></span><span></span><span></span><span></span></div></div>
+        <div class="text-center sm:text-left">
+          <h3 class="text-2xl font-bold tracking-tight">${esc(PLAYLIST.title)}</h3>
+          <p class="mt-2 text-[color:var(--soft)]">${esc(PLAYLIST.note)}</p>
+          <a href="${esc(url)}" target="_blank" rel="noopener" class="btn btn-pri inline-block mt-4">Open on Spotify</a>
+        </div>
+      </div>
+      ${canEmbed ? `<iframe class="w-full mt-5 rounded-2xl" style="border:0;height:352px" src="${esc(embed)}" allow="encrypted-media; fullscreen" loading="lazy" title="Playlist"></iframe>` : ""}
+    </div>
+    <div class="glass p-6 sm:p-8 text-center">
+      <h3 class="text-2xl font-bold tracking-tight">${esc(TREAT.name)}</h3>
+      <p class="mt-1 text-[color:var(--soft)]">${esc(TREAT.text)}</p>
+      <div class="flex flex-col items-center mt-6"><div class="candle"><div class="flame" id="flame"></div></div><div class="text-8xl leading-none">${TREAT.emoji}</div></div>
+      <button id="blow" class="btn btn-pri mt-6">Blow out the candle 🕯️</button>
+    </div>
+    <div class="glass glass-clear p-6 sm:p-8">
+      <h3 class="text-2xl font-bold tracking-tight">Your birthday wish</h3>
+      <p class="mt-3 text-lg leading-relaxed">${esc(fill(WISH))}</p>
+    </div>
+    <div class="glass p-6 sm:p-8">
+      <h3 class="text-xl font-bold tracking-tight">Want to share what you wrote?</h3>
+      <p class="mt-2 text-[color:var(--soft)]">Your answers stay on your phone unless you choose to send them. No pressure at all.</p>
+      <div class="flex flex-wrap gap-3 mt-4"><button id="share" class="btn btn-pri">Send my answers to <span data-me></span></button><button id="again" class="btn btn-glass">Edit my answers</button></div>
+      <textarea id="shareBox" readonly class="field mt-4 hidden" rows="6"></textarea>
+    </div>
+    <div class="text-center"><button id="toNote" class="btn btn-pri">One last thing 💌</button></div>`;
+  r.querySelectorAll("[data-me]").forEach(e => e.textContent = CONFIG.yourName);
+  r.classList.remove("hidden");
+  $("#blow").onclick = e => { $("#flame").classList.add("out"); e.target.disabled = true; e.target.textContent = "Wish made ✨"; splash(); };
+  $("#again").onclick = () => { state.step = 0; renderQ(); goPage("quiz"); };
+  $("#toNote").onclick = () => goPage("closing");
+  $("#share").onclick = async e => {
+    const body = `Hi ${CONFIG.yourName}, here are my answers:\n\n` + QUESTIONS.map(q => `${q.q}\n${state.ans[q.key] || "(skipped)"}`).join("\n\n");
+    if (CONFIG.replyEmail) location.href = `mailto:${CONFIG.replyEmail}?subject=${encodeURIComponent("My answers")}&body=${encodeURIComponent(body)}`;
+    else if (CONFIG.replyPhone) location.href = `sms:${CONFIG.replyPhone}?&body=${encodeURIComponent(body)}`;
+    else {
+      try { await navigator.clipboard.writeText(body); e.target.textContent = "Copied. Paste it to me!"; }
+      catch { $("#shareBox").value = body; $("#shareBox").classList.remove("hidden"); }
+    }
+  };
+}
+
+/* ---------- Modal ---------- */
+// ✏️ EDIT: the three invitation options
+const INVITES = [["☕","Coffee","a coffee date"],["🍽️","Dinner","dinner"],["🎡","Something fun","an activity of my choice"]];
+let picked = null;
+const modal = $("#modal"), sheet = $("#sheet");
+const openModal = () => { picked = null; showChoose(); modal.classList.add("open"); };
+const closeModal = () => modal.classList.remove("open");
+$("#claim").onclick = openModal; $("#scrim").onclick = closeModal;
+addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+
+function showChoose() {
+  sheet.innerHTML = `
+    <div class="text-center"><div class="text-5xl">🎁</div>
+    <h3 id="mTitle" class="text-2xl font-bold tracking-tight mt-2">Your birthday treat is on me</h3>
+    <p class="mt-2 text-[color:var(--soft)]">Pick what sounds good. You choose the day, I’ll handle the rest.</p></div>
+    <div class="mt-5 space-y-3">${INVITES.map(([e, l, v], i) => `<button class="choice" data-i="${i}" aria-pressed="false"><span class="text-2xl">${e}</span><span class="font-semibold">${l}</span></button>`).join("")}</div>
+    <input id="extra" class="mt-4 w-full rounded-2xl px-4 py-3 bg-white/10 border border-white/25 outline-none focus:ring-2 focus:ring-red-500 placeholder:text-white/50" placeholder="Any day, place, or idea in mind? (optional)">
+    <div class="flex gap-3 mt-5"><button id="cancel" class="btn btn-glass flex-1">Not yet</button><button id="go" class="btn btn-pri flex-1 opacity-50" disabled>Send my pick</button></div>`;
+  sheet.querySelectorAll(".choice").forEach(b => b.onclick = () => {
+    picked = INVITES[b.dataset.i];
+    sheet.querySelectorAll(".choice").forEach(x => x.setAttribute("aria-pressed", x === b));
+    $("#go").disabled = false; $("#go").classList.remove("opacity-50");
+  });
+  $("#cancel").onclick = closeModal;
+  $("#go").onclick = showDone;
+}
+
+function showDone() {
+  const extra = $("#extra").value.trim();
+  const msg = `Hi ${CONFIG.yourName}! I’d love to claim my birthday treat: ${picked[2]}.` + (extra ? ` ${extra}` : "");
+  sheet.innerHTML = `
+    <div class="text-center"><div class="text-5xl">🎉</div>
+    <h3 id="mTitle" class="text-2xl font-bold tracking-tight mt-2">It’s a date</h3>
+    <p class="mt-2 text-[color:var(--soft)]">Send this to <span data-me></span> so we can pick a day.</p>
+    <p id="msgBox" class="mt-4 p-4 rounded-2xl bg-white/10 border border-white/25 text-left"></p></div>
+    <div class="flex gap-3 mt-5"><button id="close" class="btn btn-glass flex-1">Close</button><a id="send" class="btn btn-pri flex-1 text-center">Send message</a></div>`;
+  $("#msgBox").textContent = msg;
+  sheet.querySelector("[data-me]").textContent = CONFIG.yourName;
+  const send = $("#send");
+  if (CONFIG.replyPhone) send.href = `sms:${CONFIG.replyPhone}?&body=${encodeURIComponent(msg)}`;
+  else send.onclick = async () => { try { await navigator.clipboard.writeText(msg); send.textContent = "Copied. Paste it to me!"; } catch { send.textContent = "Screenshot this for me!"; } };
+  $("#close").onclick = closeModal;
+  splash();
+}
+
+/* ---------- Gentle reveal on scroll ---------- */
+const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add("in")), { threshold:.15 });
+document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+
+/* ---------- Site shell: login, game, reveal ---------- */
+document.title = `${CONFIG.siteName} | ${CONFIG.tagline.replace(/\.$/, "")}`;
+$("#brand").textContent = CONFIG.siteName; $("#logo").textContent = CONFIG.siteName[0];
+$("#tagline").textContent = CONFIG.tagline;
+const show = id => document.querySelectorAll(".stage").forEach(s => s.classList.toggle("on", s.id === id));
+const err = $("#err"); let fails = 0;
+const say = (m, bad) => { err.textContent = m; err.style.color = bad ? "#ff6b7a" : "var(--soft)"; };
+
+function signIn() {
+  const ok = $("#u").value.trim().toLowerCase() === CONFIG.username.toLowerCase() && $("#p").value === CONFIG.password;
+  if (!ok) {
+    say("That username or password doesn’t match." + (++fails > 1 ? " " + CONFIG.hint : ""), true);
+    const c = $("#loginCard"); c.classList.remove("shake"); void c.offsetWidth; c.classList.add("shake"); return;
+  }
+  say(""); $("#signin").disabled = true; $("#signin").textContent = "Signing in…";
+  setTimeout(() => {
+    $("#avatar").textContent = CONFIG.herName[0]; $("#userName").textContent = CONFIG.herName; $("#userChip").classList.add("on");
+    show("game"); startGame();
+  }, 900);
+}
+$("#signin").onclick = signIn;
+["#u", "#p"].forEach(s => $(s).addEventListener("keydown", e => e.key === "Enter" && signIn()));
+$("#forgot").onclick = () => say(CONFIG.hint, false);
+
+const EMO = ["☕", "🍰", "🌙", "🎶", "🌸", "✨"];
+function startGame() {
+  const board = $("#board"); let first = null, lock = false, moves = 0, found = 0;
+  board.innerHTML = ""; $("#moves").textContent = 0; $("#pairs").textContent = "0/6";
+  [...EMO, ...EMO].sort(() => Math.random() - .5).forEach(e => {
+    const c = document.createElement("button");
+    c.className = "card"; c.dataset.e = e; c.setAttribute("aria-label", "Card");
+    c.innerHTML = `<div class="in"><div class="b">?</div><div class="f">${e}</div></div>`;
+    c.onclick = ev => {
+      if (lock || c === first || c.classList.contains("done")) return;
+      c.classList.add("flip");
+      if (!first) { first = c; return; }
+      const a = first; first = null; $("#moves").textContent = ++moves;
+      if (a.dataset.e === e) {
+        a.classList.replace("flip", "done"); c.classList.replace("flip", "done"); $("#pairs").textContent = `${++found}/6`;
+        burst(ev.clientX, ev.clientY, 18, .7);
+        if (found === 6) { $("#gmsg").textContent = `Cleared in ${moves} moves 🎉`; splash(); setTimeout(reveal, 1700); }
+      } else { lock = true; setTimeout(() => { a.classList.remove("flip"); c.classList.remove("flip"); lock = false; }, 800); }
+    };
+    board.appendChild(c);
+  });
+  setTimeout(() => $("#skip").classList.remove("hidden"), 45000);
+}
+function reveal() {
+  show(""); $("#site").classList.remove("hidden"); goPage("home", true); scrollTo(0, 0);
+  setTimeout(() => burst(innerWidth / 2, innerHeight / 3, 60, 1.2), 300);
+}
+$("#skip").onclick = reveal;
+
+renderQ();
+</script>
+</body>
+</html>
