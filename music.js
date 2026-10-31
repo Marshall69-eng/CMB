@@ -12,10 +12,11 @@ const SONG = {
   volume: 1,
   minWords: 10,         // ✏️ every scattered group has at least this many words
   beat: { t0: 0.62, period: 0.78 }, // the song's pulse (measured from someday.mp3, about 77 bpm). The ball throbs on it. Delete this line for a different song.
-  times: []             // ✏️ the exact second each word is sung. Open index.html?sync, tap along, and paste the result here. Empty = timing is estimated from the lines below.
+  lineTimes: [],        // ✏️ the second each lyric line starts. Quick way: open index.html?sync, press "Lines", tap when each line starts, paste the result here.
+  times: []             // ✏️ (optional, most exact) the second each word is sung. In ?sync press "Words" and tap every word. Even a partial list works: the rest is estimated.
 };
 // ✏️ One entry per lyric line. t = the second that line starts being sung. Optional d = how many seconds the singing lasts.
-// These t values are rough. The ?sync helper gives you exact times for every word (see SONG.times above).
+// These t values are only rough guesses. Use the ?sync helper to get real ones (SONG.lineTimes above), they replace these.
 const LYRICS = [
   { t: 2,  text: "I wanna be the melting candle to your flame" },
   { t: 6,  text: "Your closest friend, your fiercest love, one and the same" },
@@ -57,9 +58,9 @@ document.body.insertAdjacentHTML("beforeend", `
 <!-- Sync helper: open index.html?sync, play the song and tap each word as it's sung -->
 <div id="sync">
   <p id="syInfo" class="text-sm text-white/60">Tap along</p>
-  <div id="syLine" class="my-5 text-xl font-semibold leading-relaxed max-w-md">Press Start, then tap the big pad the moment each highlighted word is sung.</div>
+  <div id="syLine" class="my-5 text-xl font-semibold leading-relaxed max-w-md">Lines (quick): tap the pad when each line starts, about 5 taps. Words (exact): tap every word as it is sung.</div>
   <div id="syPad">TAP</div>
-  <div class="flex gap-3 mt-5"><button id="syGo" class="btn btn-pri">Start song</button><button id="syUndo" class="btn btn-glass">Undo</button><button id="syClose" class="btn btn-glass">Close</button></div>
+  <div class="flex gap-3 mt-5"><button id="syGoL" class="btn btn-pri">Lines (quick)</button><button id="syGoW" class="btn btn-pri">Words (exact)</button><button id="syUndo" class="btn btn-glass">Undo</button><button id="syClose" class="btn btn-glass">Close</button></div>
   <textarea id="syOut" readonly class="field mt-4 hidden" rows="4"></textarea>
   <button id="syCopy" class="btn btn-glass mt-3 hidden">Copy</button>
 </div>
@@ -71,28 +72,26 @@ let LY = null; // the show that's running right now
 const sizeFx = () => { const r = Math.min(2, devicePixelRatio || 1); lfx.width = innerWidth * r; lfx.height = innerHeight * r; lcx.setTransform(r, 0, 0, r, 0, 0); };
 addEventListener("resize", () => LY && sizeFx());
 
+const syl = w => Math.max(1, (w.toLowerCase().replace(/[^a-z]/g, "").replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, "").replace(/^y/, "").match(/[aeiouy]{1,2}/g) || []).length);
+
 // Turns LYRICS into scenes of at least SONG.minWords words, each word with its own start/end second.
+// Without tapped word times, each syllable lands on a step of the song's beat (one eighth note), starting at the line's start.
 function lyricScenes() {
-  const lines = LYRICS.map((l, i) => ({ text:l.text, d:l.d, t: typeof l.t === "number" ? l.t : i * 4 }));
+  const LT = SONG.lineTimes || [], q = SONG.beat ? SONG.beat.period / 2 : 0.4;
+  const lines = LYRICS.map((l, i) => ({ text:l.text, d:l.d, t: typeof LT[i] === "number" ? LT[i] : typeof l.t === "number" ? l.t : i * 4 }));
   const words = [];
   lines.forEach((l, i) => {
-    const ws = l.text.split(/\s+/).filter(Boolean);
-    const next = i + 1 < lines.length ? lines[i + 1].t : l.t + 5;
-    const sung = Math.max(0.6, l.d ?? Math.min(next - l.t - 0.2, ws.length * 0.4));
-    const wt = ws.reduce((a, w) => a + w.length + 2, 0); let acc = 0;
-    ws.forEach(w => { const s = l.t + sung * acc / wt; acc += w.length + 2; words.push({ w, l:i, s, e: l.t + sung * acc / wt }); });
+    const ws = l.text.split(/\s+/).filter(Boolean), sy = ws.map(syl), total = sy.reduce((a, b) => a + b, 0) || 1;
+    const t0 = SONG.beat ? SONG.beat.t0 + Math.round((l.t - SONG.beat.t0) / q) * q : l.t; // line start sits on the beat grid
+    const gap = (i + 1 < lines.length ? lines[i + 1].t - t0 : total * q + 2) - 0.15;
+    const unit = Math.min(l.d ? l.d / total : q, Math.max(0.12, gap / total)); // one syllable per beat step, squeezed if the line is crowded
+    let acc = 0;
+    ws.forEach((w, k) => { words.push({ w, l:i, s: t0 + acc * unit, e: t0 + (acc + sy[k] * 0.92) * unit }); acc += sy[k]; });
   });
   const T = SONG.times || [];
-  if (T.length && T.length !== words.length) console.warn(`SONG.times has ${T.length} times but the lyrics have ${words.length} words, so it is ignored.`);
-  if (T.length === words.length) { // exact times from the ?sync helper: the words follow the singing
-    words.forEach((w, k) => { w.s = T[k]; w.e = Math.min(k + 1 < T.length ? T[k + 1] : w.s + 0.9, w.s + 0.9); });
-  } else if (SONG.beat) { // no tapped times yet: nudge each word onto the song's groove
-    const q = SONG.beat.period / 2; let prev = -1;
-    words.forEach(w => {
-      const c = SONG.beat.t0 + Math.round((w.s - SONG.beat.t0) / q) * q, s = Math.max(Math.abs(c - w.s) < 0.14 ? c : w.s, prev + 0.05);
-      w.e = Math.max(w.e + (s - w.s), s + 0.15); w.s = prev = s;
-    });
-  }
+  if (T.length > words.length) console.warn(`SONG.times has ${T.length} times but the lyrics only have ${words.length} words. Extra times are ignored.`);
+  words.forEach((w, k) => { if (k < T.length) { w.s = T[k]; w.e = Math.min(k + 1 < T.length ? T[k + 1] : w.s + 0.9, w.s + 0.9); } }); // tapped times win; words after the last one stay estimated
+  words.forEach((w, k) => { if (k) { const p = words[k - 1]; if (w.s < p.s + 0.05) { const d = p.s + 0.05 - w.s; w.s += d; w.e += d; } } }); // always moving forward
   const scenes = []; let cur = [];
   words.forEach((w, k) => { cur.push(w); if ((k + 1 === words.length || words[k + 1].l !== w.l) && cur.length >= SONG.minWords) { scenes.push(cur); cur = []; } });
   if (cur.length) { if (scenes.length) scenes[scenes.length - 1] = scenes[scenes.length - 1].concat(cur); else scenes.push(cur); }
@@ -214,22 +213,28 @@ function endLyrics(quiet) {
 $("#lyrSkip").onclick = () => endLyrics();
 addEventListener("keydown", e => { if (e.key === "Escape") endLyrics(); });
 
-/* ---------- Sync helper: open index.html?sync, press Start, tap the pad as each highlighted word is sung ---------- */
+/* ---------- Sync helper: open index.html?sync, press Lines or Words, then tap the pad in time with the song ---------- */
 function openSync() {
-  const words = [], lineOf = [];
-  LYRICS.forEach((l, i) => l.text.split(/\s+/).filter(Boolean).forEach(w => { words.push(w); lineOf.push(i); }));
+  const lines = LYRICS.map(l => l.text.split(/\s+/).filter(Boolean)), words = lines.flat(), lineOf = lines.flatMap((ws, i) => ws.map(() => i));
   const info = $("#syInfo"), line = $("#syLine"), out = $("#syOut"), copy = $("#syCopy");
-  let k = 0, times = [], audio = null;
+  let mode = "", k = 0, times = [], audio = null;
+  const count = () => mode === "lines" ? lines.length : words.length;
   const draw = () => {
-    const done = k >= words.length;
+    const done = k >= count();
     out.classList.toggle("hidden", !done); copy.classList.toggle("hidden", !done);
-    if (done) { info.textContent = "Done! Copy this into SONG in index.html"; line.textContent = "✓"; out.value = "times: [" + times.map(x => x.toFixed(2)).join(", ") + "]"; return; }
-    info.textContent = `Word ${k + 1} of ${words.length}`;
-    line.innerHTML = words.map((w, i) => lineOf[i] !== lineOf[k] ? "" : `<span style="${i === k ? "color:#fff;font-size:1.8em;text-shadow:0 0 14px #fff" : i < k ? "opacity:.3" : "opacity:.65"}">${esc(w)}</span>`).join(" ");
+    if (done) { info.textContent = "Done! Paste this into SONG in music.js"; line.textContent = "✓"; out.value = (mode === "lines" ? "lineTimes: [" : "times: [") + times.map(x => x.toFixed(2)).join(", ") + "],"; return; }
+    if (mode === "lines") {
+      info.textContent = `Line ${k + 1} of ${lines.length}: tap the moment it starts`;
+      line.innerHTML = lines.map((ws, i) => `<div style="${i === k ? "color:#fff;font-size:1.35em;text-shadow:0 0 14px #fff" : i < k ? "opacity:.25" : "opacity:.55"}">${esc(ws.join(" "))}</div>`).join("");
+    } else {
+      info.textContent = `Word ${k + 1} of ${words.length}`;
+      line.innerHTML = words.map((w, i) => lineOf[i] !== lineOf[k] ? "" : `<span style="${i === k ? "color:#fff;font-size:1.8em;text-shadow:0 0 14px #fff" : i < k ? "opacity:.3" : "opacity:.65"}">${esc(w)}</span>`).join(" ");
+    }
   };
+  const start = m => { mode = m; if (audio) audio.pause(); audio = new Audio(SONG.src); audio.play(); k = 0; times = []; draw(); };
   $("#sync").classList.add("open");
-  $("#syGo").onclick = () => { if (audio) audio.pause(); audio = new Audio(SONG.src); audio.play(); k = 0; times = []; draw(); };
-  $("#syPad").addEventListener("pointerdown", () => { if (!audio || audio.paused || k >= words.length) return; times.push(Math.max(0, audio.currentTime - 0.09)); k++; draw(); }); // 0.09s = typical tap delay
+  $("#syGoL").onclick = () => start("lines"); $("#syGoW").onclick = () => start("words");
+  $("#syPad").addEventListener("pointerdown", () => { if (!audio || audio.paused || k >= count()) return; times.push(Math.max(0, audio.currentTime - 0.09)); k++; draw(); }); // 0.09s = typical tap delay
   $("#syUndo").onclick = () => { if (k) { k--; times.pop(); draw(); } };
   $("#syClose").onclick = () => { if (audio) audio.pause(); $("#sync").classList.remove("open"); };
   copy.onclick = async () => { try { await navigator.clipboard.writeText(out.value); copy.textContent = "Copied ✓"; } catch { out.select(); } };
