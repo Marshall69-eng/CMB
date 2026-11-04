@@ -16,11 +16,11 @@
   html { scroll-behavior:smooth; }
   body { color:var(--ink); background:#05060b; min-height:100vh; overflow-x:hidden; }
 
-  
+  /* Ambient mesh gradient blobs */
   .blob { position:fixed; border-radius:9999px; filter:blur(80px); opacity:.6; z-index:-1; animation:drift 20s ease-in-out infinite alternate; }
   @keyframes drift { to { transform:translate(70px,-50px) scale(1.18); } }
 
-  
+  /* iOS glass surface */
   .glass {
     position:relative; border-radius:28px;
     background:linear-gradient(115deg,rgba(255,255,255,.16),rgba(255,255,255,0) 42%),
@@ -47,13 +47,13 @@
   .shimmer { background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(255,255,255,.3),rgba(255,255,255,.05)); background-size:200% 100%; animation:sh 1.2s linear infinite; border-radius:12px; }
   @keyframes sh { to { background-position:-200% 0; } }
 
-
+  /* Equalizer bars on the playlist cover */
   .eq { display:flex; gap:4px; align-items:flex-end; height:34px; }
   .eq span { width:6px; border-radius:3px; background:#fff; animation:eq .9s ease-in-out infinite alternate; }
   .eq span:nth-child(2){animation-delay:.2s} .eq span:nth-child(3){animation-delay:.4s} .eq span:nth-child(4){animation-delay:.1s}
   @keyframes eq { from { height:20%; } to { height:100%; } }
 
-
+  /* Treat choices */
   .choice { display:flex; align-items:center; gap:.9rem; width:100%; padding:.9rem 1.1rem; border-radius:20px; text-align:left; background:rgba(255,255,255,.08); border:1.5px solid rgba(255,255,255,.2); cursor:pointer; transition:transform .3s var(--spring), border-color .2s; }
   .choice:active { transform:scale(.97); }
   .choice[aria-pressed="true"] { border-color:#ff2d46; background:rgba(255,45,70,.22); }
@@ -61,7 +61,7 @@
   .reveal { opacity:0; transform:translateY(24px); transition:opacity .8s, transform .8s var(--spring); } .reveal.in { opacity:1; transform:none; }
   #fx { position:fixed; inset:0; pointer-events:none; z-index:60; }
 
- 
+  /* Voucher ticket */
   .ticket-wrap { filter:drop-shadow(0 14px 22px rgba(0,0,0,.5)); animation:pop .55s both var(--spring); }
   .ticket { --stub:78px; position:relative; display:flex; overflow:hidden; border-radius:20px; color:#fff; text-align:left;
     background:linear-gradient(135deg,#e0182f 0%,#8f0b1f 58%,#12358c 135%); border:1px solid rgba(255,255,255,.3);
@@ -90,17 +90,17 @@
                   font-size:1.35rem; font-weight:800; letter-spacing:.18em; text-transform:uppercase; animation:stamp .5s var(--spring) backwards; }
   @keyframes stamp { from { opacity:0; transform:rotate(-14deg) scale(2.4); } }
 
-
-  #bottle { display:block; margin:1.5rem auto 0; background:none; border:0; padding:0; cursor:pointer; filter:drop-shadow(0 0 22px rgba(255,59,74,.4)); }
-  #bottle:disabled { cursor:default; }
-  #bottle:focus-visible { outline:3px solid #ff5a6b; outline-offset:8px; border-radius:24px; }
-  #bottle .smoke { opacity:0; transform-box:fill-box; transform-origin:50% 100%; filter:blur(4px); }
-  #bottle.open .smoke { animation:rise 2.4s ease-out forwards; }
+  /* Genie lamp */
+  #lamp { display:block; margin:1.5rem auto 0; background:none; border:0; padding:0; cursor:pointer; filter:drop-shadow(0 0 22px rgba(255,190,90,.45)); }
+  #lamp:disabled { cursor:default; }
+  #lamp:focus-visible { outline:3px solid #ff5a6b; outline-offset:8px; border-radius:24px; }
+  #lamp .smoke { opacity:0; transform-box:fill-box; transform-origin:50% 100%; filter:blur(4px); }
+  #lamp.open .smoke { animation:rise 2.4s ease-out forwards; }
+  #lamp.open svg { animation:rub .8s ease; }
   @keyframes rise { 0% { opacity:0; transform:translateY(24px) scale(.4); } 30% { opacity:.9; } 100% { opacity:0; transform:translateY(-70px) scale(1.7); } }
-  #bottle .cork { transform-box:fill-box; transform-origin:center; transition:transform .6s var(--spring), opacity .5s .1s; }
-  #bottle.open .cork { transform:translate(26px,-30px) rotate(28deg); opacity:0; }
+  @keyframes rub { 20% { transform:rotate(-6deg); } 40% { transform:rotate(5deg); } 60% { transform:rotate(-4deg); } 80% { transform:rotate(3deg); } }
 
- 
+  /* Secret message (tap the logo 5 times) */
   #logo { cursor:pointer; -webkit-user-select:none; user-select:none; touch-action:manipulation; }
   .nudge { animation:nudge .3s var(--spring); } @keyframes nudge { 50% { transform:scale(1.2) rotate(-8deg); } }
   #secret { position:fixed; inset:0; z-index:55; display:flex; align-items:center; justify-content:center; padding:1rem; opacity:0; pointer-events:none; transition:opacity .3s; }
@@ -108,14 +108,14 @@
   #sCard { transform:translateY(40px) scale(.94); transition:transform .55s var(--spring); }
   #secret.open #sCard { transform:none; }
 
- 
+  /* ---- Pages: only one section is visible at a time ---- */
   .page { display:none; }
   .page.on { display:block; animation:pageIn .45s ease backwards; }
   @keyframes pageIn { from { opacity:0; transform:translateY(14px); } }
 
   @media (prefers-reduced-motion:reduce) { *, *::before, *::after { animation:none !important; transition:none !important; } .reveal { opacity:1; transform:none; } }
 
- 
+  /* ---- Site shell, login, game, phone tweaks ---- */
   * { -webkit-tap-highlight-color:transparent; } button, a { touch-action:manipulation; }
   body { min-height:100dvh; }
   .stage { display:none; min-height:calc(100vh - 5rem); min-height:calc(100dvh - 5rem); align-items:center; justify-content:center; padding:1rem 1rem calc(2rem + env(safe-area-inset-bottom)); }
@@ -141,7 +141,7 @@
 </head>
 <body class="font-sans antialiased">
 
-
+<!-- Ambient mesh background -->
 <div class="blob" style="width:42vw;height:42vw;left:-10vw;top:-8vw;background:#12358c"></div>
 <div class="blob" style="width:38vw;height:38vw;right:-8vw;top:10vh;background:#d6102a;animation-delay:-6s"></div>
 <div class="blob" style="width:44vw;height:44vw;left:20vw;bottom:-14vw;background:#0b2a6e;animation-delay:-11s"></div>
@@ -155,7 +155,7 @@
   </div>
 </nav>
 
-
+<!-- LOGIN -->
 <section id="login" class="stage on">
   <div id="loginCard" class="glass w-full max-w-sm p-6 sm:p-8">
     <h1 class="text-3xl font-extrabold tracking-tight">Welcome</h1>
@@ -170,7 +170,7 @@
   </div>
 </section>
 
-
+<!-- GAME -->
 <section id="game" class="stage">
   <div class="glass w-full max-w-md p-5 sm:p-7 text-center">
     <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">Quick warm-up</h2>
@@ -182,22 +182,22 @@
   </div>
 </section>
 
-
+<!-- Each section below is its own page. Only the one with class "on" shows. -->
 <main id="site" class="hidden max-w-3xl mx-auto px-4 sm:px-6 pb-24">
 
- 
+  <!-- PAGE 1: HERO -->
   <header id="home" class="page on pt-4 sm:pt-10">
     <div class="glass float px-6 sm:px-12 py-12 text-center">
       <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight">
         Happy birthday, <span data-her></span>!
       </h1>
-     
+      <!-- ✏️ EDIT: the welcome line is set in CONFIG.welcome below -->
       <p id="welcome" class="mt-5 text-lg sm:text-xl text-[color:var(--soft)] max-w-xl mx-auto"></p>
       <button id="start" class="btn btn-pri inline-block mt-8">Let’s start</button>
     </div>
   </header>
 
-
+  <!-- PAGE 2: QUIZ -->
   <section id="quiz" class="page pt-4 sm:pt-10">
     <div class="glass p-6 sm:p-8">
       <div class="flex items-center justify-between text-sm font-medium text-[color:var(--soft)]">
@@ -213,7 +213,7 @@
     </div>
   </section>
 
-
+  <!-- PAGE 3: PLAYLIST AND WISH -->
   <section id="curator" class="page pt-4 sm:pt-10 space-y-6">
     <div id="thinking" class="glass p-8 text-center">
       <p class="font-semibold">Putting something together…</p>
@@ -222,7 +222,7 @@
     <div id="results" class="hidden space-y-6"></div>
   </section>
 
-  
+  <!-- PAGE 4: PERSONAL NOTE -->
   <section id="closing" class="page pt-4 sm:pt-10">
     <div class="glass glass-clear p-7 sm:p-10">
       <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">A little note from me</h2>
@@ -235,31 +235,38 @@
     </div>
   </section>
 
-
+  <!-- PAGE: GENIE (three wishes) -->
   <section id="genie" class="page pt-4 sm:pt-10">
     <div class="glass glass-clear p-6 sm:p-8 text-center">
       <h2 class="text-2xl sm:text-3xl font-bold tracking-tight">Three wishes</h2>
-      <p class="mt-2 text-[color:var(--soft)] max-w-md mx-auto">Turns out the genie in this bottle is me. You get three wishes, no take-backs. I can’t promise real magic, but I’ll try my best to grant every one.</p>
+      <p class="mt-2 text-[color:var(--soft)] max-w-md mx-auto">Turns out the genie in this lamp is me. You get three wishes, no take-backs. I can’t promise real magic, but I’ll try my best to grant every one.</p>
       <p class="mt-1 text-sm text-[color:var(--soft)]">Rule: no wishing for more wishes.</p>
-      <button id="bottle" class="float" aria-label="Open the bottle">
-        <svg viewBox="0 0 120 170" width="120" height="170" style="overflow:visible" aria-hidden="true">
+      <button id="lamp" class="float" aria-label="Rub the lamp">
+        <svg viewBox="0 0 210 140" width="210" height="140" style="overflow:visible" aria-hidden="true">
           <defs>
-            <linearGradient id="gl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".5" stop-color="#ff6b7a" stop-opacity=".25"/><stop offset="1" stop-color="#1c3f94" stop-opacity=".45"/></linearGradient>
-            <radialGradient id="gw" cx=".5" cy=".7" r=".6"><stop offset="0" stop-color="#ffd1d6" stop-opacity=".9"/><stop offset="1" stop-color="#ff2d46" stop-opacity="0"/></radialGradient>
+            <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0b8"/><stop offset=".45" stop-color="#f4bb3a"/><stop offset="1" stop-color="#a9650f"/></linearGradient>
           </defs>
-          <g class="smoke"><ellipse cx="60" cy="34" rx="16" ry="12" fill="#ffd1d6"/><ellipse cx="48" cy="24" rx="12" ry="9" fill="#fff"/><ellipse cx="72" cy="22" rx="13" ry="10" fill="#ff9aa6"/></g>
-          <path d="M48 30h24v22c0 8 28 18 28 50v40a18 18 0 0 1-18 18H38a18 18 0 0 1-18-18v-40c0-32 28-42 28-50z" fill="url(#gl)" stroke="rgba(255,255,255,.55)" stroke-width="2"/>
-          <ellipse cx="60" cy="128" rx="30" ry="26" fill="url(#gw)"/>
-          <path d="M34 90c-4 10-6 22-6 34" stroke="#fff" stroke-opacity=".6" stroke-width="3" stroke-linecap="round" fill="none"/>
-          <rect class="cork" x="46" y="18" width="28" height="16" rx="5" fill="#c98a52"/>
+          <g class="smoke"><ellipse cx="196" cy="34" rx="15" ry="11" fill="#ffd1d6"/><ellipse cx="186" cy="22" rx="11" ry="8" fill="#fff"/><ellipse cx="202" cy="20" rx="12" ry="9" fill="#9bb6ff"/></g>
+          <path d="M150 82C176 84 182 62 198 46" stroke="url(#gold)" stroke-width="9" stroke-linecap="round" fill="none"/>
+          <path d="M48 78C6 84 6 40 60 60" stroke="url(#gold)" stroke-width="7" stroke-linecap="round" fill="none"/>
+          <path d="M84 120h42l-7-14H91z" fill="url(#gold)"/>
+          <rect x="72" y="120" width="66" height="9" rx="4.5" fill="url(#gold)"/>
+          <path d="M38 72C38 102 72 114 105 114C138 114 172 102 172 72z" fill="url(#gold)"/>
+          <path d="M58 72C62 54 148 54 152 72z" fill="url(#gold)"/>
+          <rect x="99" y="50" width="12" height="10" rx="3" fill="url(#gold)"/>
+          <circle cx="105" cy="46" r="6" fill="url(#gold)"/>
+          <path d="M44 84C76 96 134 96 166 84" stroke="#7a4a0c" stroke-opacity=".45" stroke-width="2" fill="none"/>
+          <circle cx="105" cy="97" r="4.5" fill="#ff2d46"/>
+          <path d="M52 78C54 92 66 102 82 107" stroke="#fff" stroke-opacity=".6" stroke-width="3" stroke-linecap="round" fill="none"/>
         </svg>
       </button>
-      <p id="gTap" class="mt-3 text-sm text-[color:var(--soft)]">Tap the bottle to open it.</p>
+      <p id="gTap" class="mt-3 text-sm text-[color:var(--soft)]">Give the lamp a rub.</p>
       <div id="gBox" class="hidden mt-6 text-left"></div>
       <div class="flex flex-wrap gap-3 mt-7 justify-center">
         <button id="gBack" class="btn btn-glass w-full sm:w-auto">Back</button>
-        <button id="gNext" class="btn btn-pri w-full sm:w-auto">Next</button>
+        <button id="gNext" class="btn btn-pri w-full sm:w-auto opacity-50" disabled>Next</button>
       </div>
+      <p id="gLock" class="mt-3 text-sm text-[color:var(--soft)]">Make all three wishes and send them to unlock the next page.</p>
     </div>
   </section>
 
@@ -284,30 +291,31 @@
 
 
 <script>
-
-  
+/* ============================================================
+   ✏️ EDIT HERE: names, wishes and your personal note
+   ============================================================ */
 const CONFIG = {
-  herName: "Cherry",           
-  siteName: "Curio",                 
-  tagline: "Discover what you love.",  
-  username: "cherry",              
-  password: "letmein",             
-  hint: "Hint: Ekay knows the password.", 
-  yourName: "Ekay",         
-  welcome: "No party, no fuss. Just a small something made with you in mind.",
-  confetti: false,                 
-  note: [                         
+  herName: "Cherry",            // ✏️ her first name
+  siteName: "Curio",                 // ✏️ the "real site" name shown on the login page and browser tab
+  tagline: "Discover what you love.",   // ✏️ tagline under "Welcome back"
+  username: "cherry",              // ✏️ what she types to log in (not case sensitive)
+  password: "letmein",             // ✏️ her password (a fun gate, not real security)
+  hint: "Hint: Ekay knows the password.", // ✏️ shown after a wrong try or "Forgot password?"
+  yourName: "Ekay",          // ✏️ your name (signs the note, shown in the modal)
+  welcome: "No party, no fuss. Just a small something made with you in mind.", // ✏️ welcome line
+  confetti: false,                 // ✏️ keep false for a quiet site; true brings the confetti back
+  note: [                          // ✏️ one string per paragraph of your personal note
     "I’m still learning what makes you, you. and honestly, that has been my favorite thing to do.",
     "I didn’t want to guess, so I built this and let you tell it.",
     "I hope today is gentle with you: good food, people who adore you, and nothing you didn’t want to do."
   ],
-  secret: "You actually tapped that tiny logo five times. Only someone curious would, and I like that about you. Happy birthday, {name}.", 
-  emailKey: "",                    
-  emailEndpoint: "",                
-  replyEmail: "marshall.mm1769@gmail.com",                 
+  secret: "You actually tapped that tiny logo five times. Only someone curious would, and I like that about you. Happy birthday, {name}.", // ✏️ the hidden message (tap the logo 5 times). {name} becomes her name
+  emailKey: "",                     // ✏️ OPTION A (easiest): free Web3Forms access key from web3forms.com (no signup, the key is emailed to you). Her redeemed voucher then emails you automatically.
+  emailEndpoint: "",                // ✏️ OPTION B: URL of your own email server, e.g. "https://your-server.com/send" (see send-email-server.js). Use A or B, not both.
+  replyEmail: "marshall.mm1769@gmail.com",                  // ✏️ optional: where her answers get sent (email works best for long answers)
 };
 
-
+/* ✏️ EDIT HERE: the questions she types answers to. tone is "light" or "deep" (it only changes the little label). */
 const QUESTIONS = [
   { key:"q1", q:"What’s a tiny thing that instantly makes your day better?", ph:"Anything counts, big or small." },
   { key:"q2", q:"What song have you had on repeat lately, and why that one?", ph:"Be honest, even if it’s embarrassing." },
@@ -317,21 +325,21 @@ const QUESTIONS = [
   { key:"q6", q:"What's your non-negotiables?", ph:"anything"}
 ];
 
-
+/* ✏️ EDIT HERE: the playlist made just for her */
 const PLAYLIST = {
-  url:   "https://open.spotify.com/playlist/5B2MvWtgUNlCqnhKBy6OmR?si=hAZbtB66SG28y9-N8PZsMw",   
-  title: "Abyss",
-  note:  "I know I already sent this to you, but I added the last song today." 
+  url:   "https://open.spotify.com/playlist/5B2MvWtgUNlCqnhKBy6OmR?si=hAZbtB66SG28y9-N8PZsMw",   // ✏️ paste your Spotify playlist link here (playlist links also show an inline player)
+  title: "Abyss", // ✏️ playlist name
+  note:  "I know I already sent this to you, but I added the last song today." // ✏️ your words about it
 };
-
+/* ✏️ EDIT HERE: the wish ({name} becomes her name) */
 const WISH  = "Happy birthday, {name}. No big celebration, I promise. I just hope this year lets you be exactly who you are: unfiltered, unhurried, and loved for it. I also wish that you'll have enough time and freedom to explore and know yourself more. I remember you told me you always put others first so you didn't have time to know yourself. I hope this time you'll have that. Wait for your strawberries when I get back!";
 
-
+/* ============================================================ */
 const $ = s => document.querySelector(s);
 const state = { step:0, ans:{} };
 const fill = t => t.replace(/\{name\}/g, CONFIG.herName);
 
-
+// Automatic email to you: no email app on her side. Option A = Web3Forms, option B = your own server. Resolves true if it went through.
 const autoEmail = () => !!(CONFIG.emailKey || CONFIG.emailEndpoint);
 async function sendToEmail(subject, message) {
   try {
@@ -344,25 +352,26 @@ async function sendToEmail(subject, message) {
 }
 
 
-
+// Fill names and static text from CONFIG
 document.querySelectorAll("[data-her]").forEach(e => e.textContent = CONFIG.herName);
 document.querySelectorAll("[data-me]").forEach(e => e.textContent = CONFIG.yourName);
 $("#welcome").textContent = CONFIG.welcome;
 CONFIG.note.forEach(t => { const p = document.createElement("p"); p.textContent = t; $("#note").appendChild(p); });
 
-
-  
+/* ---------- Pages ---------- */
+// Page ids, in order: home → quiz → curator → closing
 function goPage(id, fromPop) {
+  if (id === "treat" && !genieDone) id = "genie"; // the lamp can't be skipped
   document.querySelectorAll(".page").forEach(p => p.classList.toggle("on", p.id === id));
   if (!fromPop) history.pushState({ p:id }, "");
   scrollTo(0, 0);
 }
-addEventListener("popstate", e => goPage((e.state && e.state.p) || "home", true)); 
+addEventListener("popstate", e => goPage((e.state && e.state.p) || "home", true)); // phone back button / swipe works between pages
 history.replaceState({ p:"home" }, "");
 $("#start").onclick = () => goPage("quiz");
 $("#backToWish").onclick = () => goPage("curator");
 
-
+/* ---------- Confetti (off unless CONFIG.confetti is true) ---------- */
 const cv = $("#fx"), cx = cv.getContext("2d");
 let P = [], raf = 0;
 const COL = ["#ff2d46","#ff6b7a","#1c3f94","#4a73d6","#ffffff","#b30f26"];
@@ -389,12 +398,12 @@ function tick() {
   }
   raf = P.length ? requestAnimationFrame(tick) : 0;
 }
-function splash() { 
+function splash() { // full-screen confetti splash
   for (let i = 0; i < 9; i++) setTimeout(() => burst(innerWidth * (.1 + Math.random()*.8), innerHeight * (.2 + Math.random()*.35), 50, 1.3), i * 130);
 }
 
 
-
+/* ---------- Quiz (typed answers) ---------- */
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
 function renderQ() {
   const q = QUESTIONS[state.step], last = state.step === QUESTIONS.length - 1, box = $("#opts");
@@ -420,7 +429,7 @@ $("#back").onclick = () => {
 
 function finish() {
   $("#bar").style.width = "100%";
-  state.step = QUESTIONS.length - 1; renderQ(); 
+  state.step = QUESTIONS.length - 1; renderQ(); // keep the quiz page ready in case she comes back to it
   $("#thinking").classList.remove("hidden"); $("#results").classList.add("hidden");
   goPage("curator");
   setTimeout(() => { $("#thinking").classList.add("hidden"); renderResults(); }, 1400);
@@ -475,8 +484,8 @@ function renderResults() {
   };
 }
 
-
-  
+/* ---------- Claim your treat (last page) ---------- */
+// ✏️ EDIT: the three invitation options: [emoji, button label, wording in her message, "Good for:" text on the ticket]
 const INVITES = [["☕","Coffee","a coffee date","one coffee date"],["🍽️","Dinner","dinner","one dinner"],["🎡","Something fun","an activity of my choice","one activity of your choice"]];
 let picked = null;
 const sheet = $("#treatBox");
@@ -484,17 +493,22 @@ $("#claim").onclick = () => goPage("genie");
 $("#gBack").onclick = () => goPage("closing");
 $("#gNext").onclick = () => { picked = null; showChoose(); goPage("treat"); };
 
-
+/* ---------- Genie: three wishes (each wish is final once made) ---------- */
 const wishes = [];
-const gBox = $("#gBox"), bottle = $("#bottle");
-async function deliver(b, subject, body) { 
+let genieDone = false;
+const gBox = $("#gBox"), lamp = $("#lamp");
+function unlockGenie() {
+  genieDone = true; const nx = $("#gNext"); nx.disabled = false; nx.classList.remove("opacity-50"); $("#gLock").classList.add("hidden");
+}
+async function deliver(b, subject, body) { // true = sent (or her email app / clipboard took over)
   if (autoEmail() && !b.dataset.failed) {
     b.disabled = true; b.textContent = "Sending…";
-    if (await sendToEmail(subject, body)) { b.textContent = "Sent ✓"; return; }
-    b.disabled = false; b.dataset.failed = "1"; b.textContent = "Couldn’t send. Tap to use your email app"; return;
+    if (await sendToEmail(subject, body)) { b.textContent = "Sent ✓"; return true; }
+    b.disabled = false; b.dataset.failed = "1"; b.textContent = "Couldn’t send. Tap to use your email app"; return false;
   }
-  if (CONFIG.replyEmail) location.href = `mailto:${CONFIG.replyEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  else { try { await navigator.clipboard.writeText(body); b.textContent = "Copied. Paste it to me!"; } catch { b.textContent = "Screenshot this for me!"; } }
+  if (CONFIG.replyEmail) { location.href = `mailto:${CONFIG.replyEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; return true; }
+  try { await navigator.clipboard.writeText(body); b.textContent = "Copied. Paste it to me!"; } catch { b.textContent = "Screenshot this for me!"; }
+  return true;
 }
 function renderWishes() {
   const n = wishes.length, tag = i => `<p class="text-xs font-bold tracking-widest uppercase text-[color:var(--soft)]">Wish ${i + 1}</p>`;
@@ -505,7 +519,7 @@ function renderWishes() {
       : i === n
       ? `<div class="p-4 rounded-2xl bg-white/10 border border-white/25">${tag(i)}<textarea id="wIn" class="field resize-none mt-2" rows="2" maxlength="300" placeholder="Anything you want. I’ll do my best."></textarea><button id="wMake" class="btn btn-pri w-full mt-3 opacity-50" disabled>Make wish ${i + 1}</button></div>`
       : `<div class="p-4 rounded-2xl border border-white/15 opacity-40">${tag(i)}<p class="mt-1 text-sm">Waiting for the one before it</p></div>`).join("")}</div>
-    ${n ? `<button id="wSend" class="btn btn-pri w-full mt-5">Send my wish${n > 1 ? "es" : ""} to <span data-me></span></button>` : ""}`;
+    ${n === 3 ? `<button id="wSend" class="btn btn-pri w-full mt-5">Send my wishes to <span data-me></span></button>` : ""}`;
   gBox.querySelectorAll("[data-me]").forEach(e => e.textContent = CONFIG.yourName);
   const inp = $("#wIn"), make = $("#wMake");
   if (inp) {
@@ -514,15 +528,18 @@ function renderWishes() {
     if (n) inp.focus({ preventScroll:true });
   }
   const send = $("#wSend");
-  if (send) send.onclick = () => deliver(send, `🧞 ${CONFIG.herName} made her wishes`,
-    `Hi ${CONFIG.yourName}, here are my wishes:\n\n` + wishes.map((w, i) => `${i + 1}. ${w}`).join("\n"));
+  if (send) send.onclick = async () => {
+    const ok = await deliver(send, `🧞 ${CONFIG.herName} made her wishes`,
+      `Hi ${CONFIG.yourName}, here are my wishes:\n\n` + wishes.map((w, i) => `${i + 1}. ${w}`).join("\n"));
+    if (ok) unlockGenie();
+  };
 }
-bottle.onclick = () => {
-  bottle.classList.add("open"); bottle.disabled = true; $("#gTap").classList.add("hidden");
+lamp.onclick = () => {
+  lamp.classList.add("open"); lamp.disabled = true; $("#gTap").classList.add("hidden");
   setTimeout(() => { renderWishes(); gBox.classList.remove("hidden"); }, 900);
 };
 
-
+// The voucher ticket. "Good for" fills in when she picks; "done" adds the REDEEMED stamp.
 const ticket = (good, emoji, done) => `
   <div class="ticket-wrap"><div class="ticket">
     <div class="t-main">
@@ -574,14 +591,14 @@ function showDone() {
   const send = $("#send"), hint = $("#sHint"), note = $("#sNote");
   const subject = `🎟️ ${CONFIG.herName} redeemed her voucher`;
   const mail = `mailto:${CONFIG.replyEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(msg)}`;
-  const manual = openNow => { 
+  const manual = openNow => { // backup: her own phone or email app
     if (CONFIG.replyPhone) send.href = `sms:${CONFIG.replyPhone}?&body=${encodeURIComponent(msg)}`;
     else if (CONFIG.replyEmail) {
       send.href = mail; send.textContent = "Open email ✉️";
       if (openNow) { hint.textContent = "Your email app should open with the message ready. Just hit send! If it didn’t, tap the button."; location.href = mail; }
     } else send.onclick = async () => { try { await navigator.clipboard.writeText(msg); send.textContent = "Copied. Paste it to me!"; } catch { send.textContent = "Screenshot this for me!"; } };
   };
-  if (autoEmail()) { 
+  if (autoEmail()) { // goes straight to your inbox the moment she redeems
     send.classList.add("hidden"); hint.textContent = `Letting ${CONFIG.yourName} know…`;
     sendToEmail(subject, msg).then(ok => {
       if (ok) { note.textContent = `Sent to ${CONFIG.yourName} so we can pick a day.`; hint.textContent = "Sent ✓ 💌"; }
@@ -591,7 +608,7 @@ function showDone() {
   $("#close").onclick = () => { picked = null; showChoose(); };
 }
 
-
+/* ---------- Secret: tap the logo 5 times (taps must be within 1.5s of each other) ---------- */
 let taps = 0, tapTimer;
 const secret = $("#secret"), closeSecret = () => secret.classList.remove("open");
 $("#logo").addEventListener("click", () => {
@@ -603,11 +620,11 @@ $("#logo").addEventListener("click", () => {
 $("#sClose").onclick = closeSecret; $("#sScrim").onclick = closeSecret;
 addEventListener("keydown", e => { if (e.key === "Escape") closeSecret(); });
 
-
+/* ---------- Gentle reveal on scroll ---------- */
 const io = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add("in")), { threshold:.15 });
 document.querySelectorAll(".reveal").forEach(el => io.observe(el));
 
-
+/* ---------- Site shell: login, game, reveal ---------- */
 document.title = `${CONFIG.siteName} | ${CONFIG.tagline.replace(/\.$/, "")}`;
 $("#brand").textContent = CONFIG.siteName; $("#logo").textContent = CONFIG.siteName[0];
 $("#tagline").textContent = CONFIG.tagline;
