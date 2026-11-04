@@ -210,6 +210,10 @@
       <p class="mt-6 text-sm text-[color:var(--soft)]">No wrong answers and no filters needed. Skip anything you don’t feel like answering.</p>
       <h2 id="qText" class="text-2xl sm:text-3xl font-bold tracking-tight mt-3 mb-4"></h2>
       <div id="opts" class="space-y-3"></div>
+      <label class="mt-5 flex items-start gap-3 text-sm text-[color:var(--soft)] cursor-pointer">
+        <input id="shareAns" type="checkbox" class="mt-0.5 h-5 w-5 shrink-0 cursor-pointer" style="accent-color:#ff2d46">
+        <span>Send my answers to <span data-me></span> when I redeem my voucher. Totally optional.</span>
+      </label>
     </div>
   </section>
 
@@ -266,7 +270,7 @@
         <button id="gBack" class="btn btn-glass w-full sm:w-auto">Back</button>
         <button id="gNext" class="btn btn-pri w-full sm:w-auto opacity-50" disabled>Next</button>
       </div>
-      <p id="gLock" class="mt-3 text-sm text-[color:var(--soft)]">Make all three wishes and send them to unlock the next page.</p>
+      <p id="gLock" class="mt-3 text-sm text-[color:var(--soft)]">Make all three wishes to unlock the next page.</p>
     </div>
   </section>
 
@@ -336,7 +340,7 @@ const WISH  = "Happy birthday, {name}. No big celebration, I promise. I just hop
 
 /* ============================================================ */
 const $ = s => document.querySelector(s);
-const state = { step:0, ans:{} };
+const state = { step:0, ans:{}, share:false };
 const fill = t => t.replace(/\{name\}/g, CONFIG.herName);
 
 // Automatic email to you: no email app on her side. Option A = Web3Forms, option B = your own server. Resolves true if it went through.
@@ -456,32 +460,15 @@ function renderResults() {
       <p class="mt-3 text-lg leading-relaxed">${esc(fill(WISH))}</p>
     </div>
     <div class="glass p-6 sm:p-8">
-      <h3 class="text-xl font-bold tracking-tight">Want to share what you wrote?</h3>
-      <p class="mt-2 text-[color:var(--soft)]">Your answers stay on your phone unless you choose to send them. No pressure at all.</p>
-      <div class="flex flex-wrap gap-3 mt-4"><button id="share" class="btn btn-pri">Send my answers to <span data-me></span></button><button id="again" class="btn btn-glass">Edit my answers</button></div>
-      <textarea id="shareBox" readonly class="field mt-4 hidden" rows="6"></textarea>
+      <h3 class="text-xl font-bold tracking-tight">Your answers</h3>
+      <p class="mt-2 text-[color:var(--soft)]">They stay on your phone unless you ticked the box to share them. You can still change them, or change your mind.</p>
+      <div class="flex flex-wrap gap-3 mt-4"><button id="again" class="btn btn-glass">Edit my answers</button></div>
     </div>
     <div class="text-center"><button id="toNote" class="btn btn-pri">One last thing 💌</button></div>`;
   r.querySelectorAll("[data-me]").forEach(e => e.textContent = CONFIG.yourName);
   r.classList.remove("hidden");
   $("#again").onclick = () => { state.step = 0; renderQ(); goPage("quiz"); };
   $("#toNote").onclick = () => goPage("closing");
-  $("#share").onclick = async e => {
-    const b = e.currentTarget;
-    const body = `Hi ${CONFIG.yourName}, here are my answers:\n\n` + QUESTIONS.map(q => `${q.q}\n${state.ans[q.key] || "(skipped)"}`).join("\n\n");
-    if (autoEmail() && !b.dataset.failed) {
-      b.disabled = true; b.textContent = "Sending…";
-      const ok = await sendToEmail(`💌 ${CONFIG.herName}’s answers`, body);
-      if (ok) { b.textContent = "Sent ✓"; return; }
-      b.disabled = false; b.dataset.failed = "1"; b.textContent = "Couldn’t send. Tap to use your email app"; return;
-    }
-    if (CONFIG.replyEmail) location.href = `mailto:${CONFIG.replyEmail}?subject=${encodeURIComponent("My answers")}&body=${encodeURIComponent(body)}`;
-    else if (CONFIG.replyPhone) location.href = `sms:${CONFIG.replyPhone}?&body=${encodeURIComponent(body)}`;
-    else {
-      try { await navigator.clipboard.writeText(body); b.textContent = "Copied. Paste it to me!"; }
-      catch { $("#shareBox").value = body; $("#shareBox").classList.remove("hidden"); }
-    }
-  };
 }
 
 /* ---------- Claim your treat (last page) ---------- */
@@ -500,26 +487,16 @@ const gBox = $("#gBox"), lamp = $("#lamp");
 function unlockGenie() {
   genieDone = true; const nx = $("#gNext"); nx.disabled = false; nx.classList.remove("opacity-50"); $("#gLock").classList.add("hidden");
 }
-async function deliver(b, subject, body) { // true = sent (or her email app / clipboard took over)
-  if (autoEmail() && !b.dataset.failed) {
-    b.disabled = true; b.textContent = "Sending…";
-    if (await sendToEmail(subject, body)) { b.textContent = "Sent ✓"; return true; }
-    b.disabled = false; b.dataset.failed = "1"; b.textContent = "Couldn’t send. Tap to use your email app"; return false;
-  }
-  if (CONFIG.replyEmail) { location.href = `mailto:${CONFIG.replyEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`; return true; }
-  try { await navigator.clipboard.writeText(body); b.textContent = "Copied. Paste it to me!"; } catch { b.textContent = "Screenshot this for me!"; }
-  return true;
-}
 function renderWishes() {
   const n = wishes.length, tag = i => `<p class="text-xs font-bold tracking-widest uppercase text-[color:var(--soft)]">Wish ${i + 1}</p>`;
   gBox.innerHTML = `
-    <p class="text-center text-sm text-[color:var(--soft)]">${n < 3 ? `Wishes left: <b class="text-[color:var(--ink)]">${3 - n}</b>` : "All three made."}</p>
+    <p class="text-center text-sm text-[color:var(--soft)]">${n < 3 ? `Wishes left: <b class="text-[color:var(--ink)]">${3 - n}</b>` : `All three made. They’ll go to ${esc(CONFIG.yourName)} with your voucher.`}</p>
     <div class="mt-4 space-y-3">${[0, 1, 2].map(i => i < n
       ? `<div class="p-4 rounded-2xl bg-white/10 border border-[#ff2d46]">${tag(i)}<p class="mt-1 text-lg leading-snug">${esc(wishes[i])}</p></div>`
       : i === n
       ? `<div class="p-4 rounded-2xl bg-white/10 border border-white/25">${tag(i)}<textarea id="wIn" class="field resize-none mt-2" rows="2" maxlength="300" placeholder="Anything you want. I’ll do my best."></textarea><button id="wMake" class="btn btn-pri w-full mt-3 opacity-50" disabled>Make wish ${i + 1}</button></div>`
       : `<div class="p-4 rounded-2xl border border-white/15 opacity-40">${tag(i)}<p class="mt-1 text-sm">Waiting for the one before it</p></div>`).join("")}</div>
-    ${n === 3 ? `<button id="wSend" class="btn btn-pri w-full mt-5">Send my wishes to <span data-me></span></button>` : ""}`;
+`;
   gBox.querySelectorAll("[data-me]").forEach(e => e.textContent = CONFIG.yourName);
   const inp = $("#wIn"), make = $("#wMake");
   if (inp) {
@@ -527,12 +504,7 @@ function renderWishes() {
     make.onclick = () => { wishes.push(inp.value.trim()); renderWishes(); };
     if (n) inp.focus({ preventScroll:true });
   }
-  const send = $("#wSend");
-  if (send) send.onclick = async () => {
-    const ok = await deliver(send, `🧞 ${CONFIG.herName} made her wishes`,
-      `Hi ${CONFIG.yourName}, here are my wishes:\n\n` + wishes.map((w, i) => `${i + 1}. ${w}`).join("\n"));
-    if (ok) unlockGenie();
-  };
+  if (n === 3) unlockGenie();
 }
 lamp.onclick = () => {
   lamp.classList.add("open"); lamp.disabled = true; $("#gTap").classList.add("hidden");
@@ -562,8 +534,8 @@ function showChoose() {
     <div class="mt-5 space-y-3">${INVITES.map(([e, l, v], i) => `<button class="choice" data-i="${i}" aria-pressed="false"><span class="text-2xl">${e}</span><span class="font-semibold">${l}</span></button>`).join("")}</div>
     <input id="extra" class="mt-4 w-full rounded-2xl px-4 py-3 bg-white/10 border border-white/25 outline-none focus:ring-2 focus:ring-red-500 placeholder:text-white/50" placeholder="Any day, place, or idea in mind? (optional)">
     <div class="flex gap-3 mt-5"><button id="cancel" class="btn btn-glass flex-1">Back</button><button id="go" class="btn btn-pri flex-1 opacity-50" disabled>Redeem voucher 🎟️</button></div>${autoEmail() ? `
-    <p class="mt-3 text-xs text-center text-[color:var(--soft)]">Redeeming lets ${esc(CONFIG.yourName)} know which one you picked.</p>` : CONFIG.replyEmail && !CONFIG.replyPhone ? `
-    <p class="mt-3 text-xs text-center text-[color:var(--soft)]">Redeeming opens your email app with a message to ${esc(CONFIG.yourName)} ready to send.</p>` : ""}`;
+    <p class="mt-3 text-xs text-center text-[color:var(--soft)]">Redeeming sends ${esc(CONFIG.yourName)} your pick, your three wishes${state.share ? ", and your answers" : ""}.</p>` : CONFIG.replyEmail && !CONFIG.replyPhone ? `
+    <p class="mt-3 text-xs text-center text-[color:var(--soft)]">Redeeming opens your email app with a message to ${esc(CONFIG.yourName)} ready to send, with your three wishes${state.share ? " and answers" : ""} included.</p>` : ""}`;
   sheet.querySelectorAll(".choice").forEach(b => b.onclick = () => {
     picked = INVITES[b.dataset.i];
     sheet.querySelectorAll(".choice").forEach(x => x.setAttribute("aria-pressed", x === b));
@@ -578,29 +550,32 @@ function showChoose() {
 function showDone() {
   const extra = $("#extra").value.trim();
   const msg = `Hi ${CONFIG.yourName}! I’d love to claim my treat: ${picked[2]}.` + (extra ? ` ${extra}` : "");
+  const full = [msg, `🧞 My three wishes:\n` + wishes.map((w, i) => `${i + 1}. ${w}`).join("\n")]
+    .concat(state.share ? [`💌 My answers:\n\n` + QUESTIONS.map(q => `${q.q}\n${state.ans[q.key] || "(skipped)"}`).join("\n\n")] : []).join("\n\n");
   sheet.innerHTML = `
     ${ticket(picked[3], picked[0], true)}
     <div class="text-center mt-6">
     <h3 id="mTitle" class="text-2xl font-bold tracking-tight">It’s a date</h3>
     <p id="sNote" class="mt-2 text-[color:var(--soft)]">Send this to <span data-me></span> so we can pick a day.</p>
-    <p id="msgBox" class="mt-4 p-4 rounded-2xl bg-white/10 border border-white/25 text-left"></p></div>
+    <p id="msgBox" class="mt-4 p-4 rounded-2xl bg-white/10 border border-white/25 text-left"></p>
+    <p class="mt-3 text-xs text-[color:var(--soft)]">Your three wishes${state.share ? " and your answers" : ""} go along with it.</p></div>
     <div class="flex gap-3 mt-5"><button id="close" class="btn btn-glass flex-1">Change my pick</button><a id="send" class="btn btn-pri flex-1 text-center">Send message</a></div>
     <p id="sHint" class="mt-3 text-sm text-center text-[color:var(--soft)] min-h-[1.25rem]" role="status"></p>`;
   $("#msgBox").textContent = msg;
   sheet.querySelector("[data-me]").textContent = CONFIG.yourName;
   const send = $("#send"), hint = $("#sHint"), note = $("#sNote");
   const subject = `🎟️ ${CONFIG.herName} redeemed her voucher`;
-  const mail = `mailto:${CONFIG.replyEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(msg)}`;
+  const mail = `mailto:${CONFIG.replyEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(full)}`;
   const manual = openNow => { // backup: her own phone or email app
-    if (CONFIG.replyPhone) send.href = `sms:${CONFIG.replyPhone}?&body=${encodeURIComponent(msg)}`;
+    if (CONFIG.replyPhone) send.href = `sms:${CONFIG.replyPhone}?&body=${encodeURIComponent(full)}`;
     else if (CONFIG.replyEmail) {
       send.href = mail; send.textContent = "Open email ✉️";
       if (openNow) { hint.textContent = "Your email app should open with the message ready. Just hit send! If it didn’t, tap the button."; location.href = mail; }
-    } else send.onclick = async () => { try { await navigator.clipboard.writeText(msg); send.textContent = "Copied. Paste it to me!"; } catch { send.textContent = "Screenshot this for me!"; } };
+    } else send.onclick = async () => { try { await navigator.clipboard.writeText(full); send.textContent = "Copied. Paste it to me!"; } catch { send.textContent = "Screenshot this for me!"; } };
   };
   if (autoEmail()) { // goes straight to your inbox the moment she redeems
     send.classList.add("hidden"); hint.textContent = `Letting ${CONFIG.yourName} know…`;
-    sendToEmail(subject, msg).then(ok => {
+    sendToEmail(subject, full).then(ok => {
       if (ok) { note.textContent = `Sent to ${CONFIG.yourName} so we can pick a day.`; hint.textContent = "Sent ✓ 💌"; }
       else { send.classList.remove("hidden"); manual(false); hint.textContent = "Couldn’t send it automatically. Tap the button to send it yourself."; }
     });
@@ -678,6 +653,7 @@ function reveal() {
 $("#skip").onclick = reveal;
 
 
+$("#shareAns").onchange = e => state.share = e.target.checked;
 renderQ();
 </script>
 </body>
