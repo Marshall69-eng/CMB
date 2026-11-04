@@ -53,14 +53,6 @@
   .eq span:nth-child(2){animation-delay:.2s} .eq span:nth-child(3){animation-delay:.4s} .eq span:nth-child(4){animation-delay:.1s}
   @keyframes eq { from { height:20%; } to { height:100%; } }
 
-  /* Candle */
-  .candle { width:10px; height:34px; border-radius:4px; background:repeating-linear-gradient(45deg,#fff,#fff 5px,#ff4d5e 5px,#ff4d5e 10px); margin-bottom:-18px; position:relative; z-index:2; }
-  .flame { position:absolute; left:50%; top:-26px; width:14px; height:24px; margin-left:-7px; border-radius:50% 50% 50% 50%/62% 62% 38% 38%;
-           background:radial-gradient(circle at 50% 72%,#fff7c2,#ffb84d 55%,#ff7a45); box-shadow:0 0 20px 7px rgba(255,190,90,.6);
-           animation:flick .2s ease-in-out infinite alternate; transition:opacity .4s, transform .4s; }
-  .flame.out { opacity:0; transform:scale(.2) translateY(-12px); }
-  @keyframes flick { to { transform:scale(.92,1.08) rotate(-3deg); } }
-
   /* Treat choices */
   .choice { display:flex; align-items:center; gap:.9rem; width:100%; padding:.9rem 1.1rem; border-radius:20px; text-align:left; background:rgba(255,255,255,.08); border:1.5px solid rgba(255,255,255,.2); cursor:pointer; transition:transform .3s var(--spring), border-color .2s; }
   .choice:active { transform:scale(.97); }
@@ -186,11 +178,10 @@
   <!-- PAGE 1: HERO -->
   <header id="home" class="page on pt-4 sm:pt-10">
     <div class="glass float px-6 sm:px-12 py-12 text-center">
-      <button id="heroEmoji" class="text-6xl mb-4 transition-transform active:scale-90" aria-label="Confetti">🎂</button>
       <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight">
         Happy birthday, <span data-her></span>!
       </h1>
-      <!-- ✏️ EDIT: the welcome wish is set in CONFIG.welcome below -->
+      <!-- ✏️ EDIT: the welcome line is set in CONFIG.welcome below -->
       <p id="welcome" class="mt-5 text-lg sm:text-xl text-[color:var(--soft)] max-w-xl mx-auto"></p>
       <button id="start" class="btn btn-pri inline-block mt-8">Let’s start</button>
     </div>
@@ -212,10 +203,10 @@
     </div>
   </section>
 
-  <!-- PAGE 3: PLAYLIST, CAKE, WISH -->
+  <!-- PAGE 3: PLAYLIST AND WISH -->
   <section id="curator" class="page pt-4 sm:pt-10 space-y-6">
     <div id="thinking" class="glass p-8 text-center">
-      <p class="font-semibold">Putting your birthday together…</p>
+      <p class="font-semibold">Putting something together…</p>
       <div class="shimmer h-3 mt-4 mx-auto w-2/3"></div><div class="shimmer h-3 mt-3 mx-auto w-1/2"></div>
     </div>
     <div id="results" class="hidden space-y-6"></div>
@@ -228,13 +219,13 @@
       <div id="note" class="mt-4 space-y-3 text-[17px] leading-relaxed"></div>
       <p class="mt-5 font-semibold">– <span data-me></span></p>
       <div class="flex flex-wrap gap-3 mt-7">
-        <button id="claim" class="btn btn-pri w-full sm:w-auto">One last surprise 🎁</button>
+        <button id="claim" class="btn btn-pri w-full sm:w-auto">One more thing ☕</button>
         <button id="backToWish" class="btn btn-glass w-full sm:w-auto">Back</button>
       </div>
     </div>
   </section>
 
-  <!-- PAGE 5: CLAIM YOUR BIRTHDAY TREAT (last page) -->
+  <!-- PAGE 5: CLAIM YOUR TREAT (last page) -->
   <section id="treat" class="page pt-4 sm:pt-10">
     <div id="treatBox" class="glass glass-clear p-6 sm:p-8"></div>
     <footer class="mt-10 text-center text-sm text-[color:var(--soft)]">Made with care by <span data-me></span></footer>
@@ -266,19 +257,20 @@ const CONFIG = {
   password: "letmein",             // ✏️ her password (a fun gate, not real security)
   hint: "Hint: Ekay knows the password.", // ✏️ shown after a wrong try or "Forgot password?"
   yourName: "Ekay",          // ✏️ your name (signs the note, shown in the modal)
-  welcome: "Just a little something to show you how special you are", // ✏️ welcome wish
+  welcome: "No party, no fuss. Just a small something made with you in mind.", // ✏️ welcome line
+  confetti: false,                 // ✏️ keep false for a quiet site; true brings the confetti back
   note: [                          // ✏️ one string per paragraph of your personal note
     "I’m still learning what makes you, you. and honestly, that has been my favorite thing to do.",
     "I didn’t want to guess, so I built this and let you tell it.",
-    "I hope today is full of good food, people who adore you, and a few surprises you didn’t see coming."
+    "I hope today is gentle with you: good food, people who adore you, and nothing you didn’t want to do."
   ],
-  secret: "You actually tapped that tiny logo five times. Only someone curious would, and I like that about you. Happy birthday, {name}.", // ✏️ the hidden message (tap the logo 5 times). Make it something only you would say; {name} becomes her name
+  secret: "You actually tapped that tiny logo five times. Only someone curious would, and I like that about you. Happy birthday, {name}.", // ✏️ the hidden message (tap the logo 5 times). {name} becomes her name
   emailKey: "",                     // ✏️ OPTION A (easiest): free Web3Forms access key from web3forms.com (no signup, the key is emailed to you). Her redeemed voucher then emails you automatically.
   emailEndpoint: "",                // ✏️ OPTION B: URL of your own email server, e.g. "https://your-server.com/send" (see send-email-server.js). Use A or B, not both.
   replyEmail: "marshall.mm1769@gmail.com",                  // ✏️ optional: where her answers get sent (email works best for long answers)
 };
 
-/* ✏️ EDIT HERE: the 5 questions she types answers to. tone is "light" or "deep" (it only changes the little label). */
+/* ✏️ EDIT HERE: the questions she types answers to. tone is "light" or "deep" (it only changes the little label). */
 const QUESTIONS = [
   { key:"q1", q:"What’s a tiny thing that instantly makes your day better?", ph:"Anything counts, big or small." },
   { key:"q2", q:"What song have you had on repeat lately, and why that one?", ph:"Be honest, even if it’s embarrassing." },
@@ -294,9 +286,8 @@ const PLAYLIST = {
   title: "Abyss", // ✏️ playlist name
   note:  "I know I already sent this to you, but I added the last song today." // ✏️ your words about it
 };
-/* ✏️ EDIT HERE: the cake and the birthday wish ({name} becomes her name) */
-const TREAT = { emoji:"🎂", name:"A cake with your name on it", text:"Make a wish, then blow out the candle." };
-const WISH  = "Happy birthday, {name}. I hope this year lets you be exactly who you are: unfiltered, unhurried, and loved for it. I also wish that you'll have enough time and freedom to explore and know yourself more. I remember you told me you always put others first so you didn't have time to know yourself. I hope this time you'll have that. Wait for your strawberries when I get back!";
+/* ✏️ EDIT HERE: the wish ({name} becomes her name) */
+const WISH  = "Happy birthday, {name}. No big celebration, I promise. I just hope this year lets you be exactly who you are: unfiltered, unhurried, and loved for it. I also wish that you'll have enough time and freedom to explore and know yourself more. I remember you told me you always put others first so you didn't have time to know yourself. I hope this time you'll have that. Wait for your strawberries when I get back!";
 
 /* ============================================================ */
 const $ = s => document.querySelector(s);
@@ -334,13 +325,14 @@ history.replaceState({ p:"home" }, "");
 $("#start").onclick = () => goPage("quiz");
 $("#backToWish").onclick = () => goPage("curator");
 
-/* ---------- Confetti ---------- */
+/* ---------- Confetti (off unless CONFIG.confetti is true) ---------- */
 const cv = $("#fx"), cx = cv.getContext("2d");
 let P = [], raf = 0;
 const COL = ["#ff2d46","#ff6b7a","#1c3f94","#4a73d6","#ffffff","#b30f26"];
 const fit = () => { cv.width = innerWidth; cv.height = innerHeight; };
 addEventListener("resize", fit); fit();
 function burst(x, y, n = 40, power = 1) {
+  if (!CONFIG.confetti) return;
   for (let i = 0; i < n; i++) {
     const a = Math.random() * Math.PI * 2, s = (3 + Math.random() * 7) * power;
     P.push({ x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s - 4, r:5 + Math.random()*5, c:COL[i % COL.length],
@@ -363,7 +355,6 @@ function tick() {
 function splash() { // full-screen confetti splash
   for (let i = 0; i < 9; i++) setTimeout(() => burst(innerWidth * (.1 + Math.random()*.8), innerHeight * (.2 + Math.random()*.35), 50, 1.3), i * 130);
 }
-$("#heroEmoji").onclick = e => burst(e.clientX, e.clientY, 50);
 
 
 /* ---------- Quiz (typed answers) ---------- */
@@ -414,14 +405,8 @@ function renderResults() {
       </div>
       ${canEmbed ? `<iframe class="w-full mt-5 rounded-2xl" style="border:0;height:352px" src="${esc(embed)}" allow="encrypted-media; fullscreen" loading="lazy" title="Playlist"></iframe>` : ""}
     </div>
-    <div class="glass p-6 sm:p-8 text-center">
-      <h3 class="text-2xl font-bold tracking-tight">${esc(TREAT.name)}</h3>
-      <p class="mt-1 text-[color:var(--soft)]">${esc(TREAT.text)}</p>
-      <div class="flex flex-col items-center mt-6"><div class="candle"><div class="flame" id="flame"></div></div><div class="text-8xl leading-none">${TREAT.emoji}</div></div>
-      <button id="blow" class="btn btn-pri mt-6">Blow out the candle 🕯️</button>
-    </div>
     <div class="glass glass-clear p-6 sm:p-8">
-      <h3 class="text-2xl font-bold tracking-tight">Your birthday wish</h3>
+      <h3 class="text-2xl font-bold tracking-tight">A wish for you</h3>
       <p class="mt-3 text-lg leading-relaxed">${esc(fill(WISH))}</p>
     </div>
     <div class="glass p-6 sm:p-8">
@@ -433,7 +418,6 @@ function renderResults() {
     <div class="text-center"><button id="toNote" class="btn btn-pri">One last thing 💌</button></div>`;
   r.querySelectorAll("[data-me]").forEach(e => e.textContent = CONFIG.yourName);
   r.classList.remove("hidden");
-  $("#blow").onclick = e => { $("#flame").classList.add("out"); e.target.disabled = true; e.target.textContent = "Wish made ✨"; splash(); };
   $("#again").onclick = () => { state.step = 0; renderQ(); goPage("quiz"); };
   $("#toNote").onclick = () => goPage("closing");
   $("#share").onclick = async e => {
@@ -465,7 +449,7 @@ $("#claim").onclick = () => { picked = null; showChoose(); goPage("treat"); };
 const ticket = (good, emoji, done) => `
   <div class="ticket-wrap"><div class="ticket">
     <div class="t-main">
-      <p class="t-kicker">Birthday voucher</p>
+      <p class="t-kicker">A small voucher</p>
       <p class="t-label">Good for:</p>
       <p id="tGood" class="t-good${good ? "" : " t-empty"}">${esc(good || "pick one below")}</p>
       <p class="t-row first"><span>Redeemable by:</span> <b>${esc(CONFIG.herName)}</b></p>
@@ -478,7 +462,7 @@ const ticket = (good, emoji, done) => `
 function showChoose() {
   sheet.innerHTML = `
     <div class="text-center">
-    <h3 id="mTitle" class="text-2xl font-bold tracking-tight">Your birthday treat is on me</h3>
+    <h3 id="mTitle" class="text-2xl font-bold tracking-tight">A treat, on me</h3>
     <p class="mt-2 text-[color:var(--soft)]">Pick what sounds good. You choose the day, I’ll handle the rest.</p></div>
     <div class="mt-5">${ticket(picked && picked[3], picked ? picked[0] : "🎁")}</div>
     <div class="mt-5 space-y-3">${INVITES.map(([e, l, v], i) => `<button class="choice" data-i="${i}" aria-pressed="false"><span class="text-2xl">${e}</span><span class="font-semibold">${l}</span></button>`).join("")}</div>
@@ -499,7 +483,7 @@ function showChoose() {
 
 function showDone() {
   const extra = $("#extra").value.trim();
-  const msg = `Hi ${CONFIG.yourName}! I’d love to claim my birthday treat: ${picked[2]}.` + (extra ? ` ${extra}` : "");
+  const msg = `Hi ${CONFIG.yourName}! I’d love to claim my treat: ${picked[2]}.` + (extra ? ` ${extra}` : "");
   sheet.innerHTML = `
     ${ticket(picked[3], picked[0], true)}
     <div class="text-center mt-6">
@@ -511,8 +495,7 @@ function showDone() {
   $("#msgBox").textContent = msg;
   sheet.querySelector("[data-me]").textContent = CONFIG.yourName;
   const send = $("#send"), hint = $("#sHint"), note = $("#sNote");
-  const musicOn = typeof SONG !== "undefined" && SONG.enabled && typeof startLyrics === "function"; // music.js is optional: the site still works without it
-  const subject = `🎟️ ${CONFIG.herName} redeemed her birthday voucher`;
+  const subject = `🎟️ ${CONFIG.herName} redeemed her voucher`;
   const mail = `mailto:${CONFIG.replyEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(msg)}`;
   const manual = openNow => { // backup: her own phone or email app
     if (CONFIG.replyPhone) send.href = `sms:${CONFIG.replyPhone}?&body=${encodeURIComponent(msg)}`;
@@ -527,9 +510,8 @@ function showDone() {
       if (ok) { note.textContent = `Sent to ${CONFIG.yourName} so we can pick a day.`; hint.textContent = "Sent ✓ 💌"; }
       else { send.classList.remove("hidden"); manual(false); hint.textContent = "Couldn’t send it automatically. Tap the button to send it yourself."; }
     });
-  } else { manual(!musicOn); if (musicOn) hint.textContent = `Tap the button to send this to ${CONFIG.yourName}.`; }
+  } else manual(true);
   $("#close").onclick = () => { picked = null; showChoose(); };
-  if (musicOn) startLyrics(); else setTimeout(splash, 350); // music.js: the black lyric scene opens as soon as she redeems
 }
 
 /* ---------- Secret: tap the logo 5 times (taps must be within 1.5s of each other) ---------- */
@@ -572,7 +554,7 @@ $("#signin").onclick = signIn;
 ["#u", "#p"].forEach(s => $(s).addEventListener("keydown", e => e.key === "Enter" && signIn()));
 $("#forgot").onclick = () => say(CONFIG.hint, false);
 
-const EMO = ["☕", "🍰", "🌙", "🎶", "🌸", "✨"];
+const EMO = ["☕", "🍓", "🌙", "🎶", "🌸", "✨"];
 function startGame() {
   const board = $("#board"); let first = null, lock = false, moves = 0, found = 0;
   board.innerHTML = ""; $("#moves").textContent = 0; $("#pairs").textContent = "0/6";
@@ -588,7 +570,7 @@ function startGame() {
       if (a.dataset.e === e) {
         a.classList.replace("flip", "done"); c.classList.replace("flip", "done"); $("#pairs").textContent = `${++found}/6`;
         burst(ev.clientX, ev.clientY, 18, .7);
-        if (found === 6) { $("#gmsg").textContent = `Cleared in ${moves} moves 🎉`; splash(); setTimeout(reveal, 1700); }
+        if (found === 6) { $("#gmsg").textContent = `Cleared in ${moves} moves ✨`; splash(); setTimeout(reveal, 1700); }
       } else { lock = true; setTimeout(() => { a.classList.remove("flip"); c.classList.remove("flip"); lock = false; }, 800); }
     };
     board.appendChild(c);
@@ -604,6 +586,5 @@ $("#skip").onclick = reveal;
 
 renderQ();
 </script>
-<script src="music.js"></script>
 </body>
 </html>
